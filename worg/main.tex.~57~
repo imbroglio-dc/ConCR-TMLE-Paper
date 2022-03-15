@@ -1,0 +1,151 @@
+% Created 2022-03-15 Tue 16:02
+% Intended LaTeX compiler: pdflatex
+\documentclass{article}
+               \usepackage{listings}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage[T1]{fontenc}
+\usepackage{natbib}
+               \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,array}
+\usepackage{booktabs}
+\newcommand{\J}{\ensuremath{J}}
+\newcommand{\1}{\ensuremath{\mathbf{1}}}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\newcommand{\h}{\ensuremath{\lambda}}
+\newcommand{\T}{\ensuremath{\widetilde{T}}}
+\newcommand{\X}{\ensuremath{\mathbf{X}}}
+\renewcommand{\t}{\ensuremath{\Tilde{t}}}
+\newcommand{\ax}{\ensuremath{\mid a,\,\mathbf{x}}}
+\newcommand{\aX}{\ensuremath{\mid A = a,\,\mathbf{X}}}
+\newcommand{\AX}{\ensuremath{\mid A,\,\mathbf{X}}}
+\newcommand{\x}{\ensuremath{\mathbf{x}}}
+\newcommand{\trt}{\ensuremath{a^*}}
+\newcommand{\tk}{\ensuremath{\tau}}
+\newcommand{\jj}{\ensuremath{k}}
+\newcommand{\g}{\ensuremath{\pi}}
+\RequirePackage{tcolorbox}
+\definecolor{lightGray}{gray}{0.98}
+\definecolor{medioGray}{gray}{0.83}
+\definecolor{mygray}{rgb}{.95, 0.95, 0.95}
+\newcommand{\mybox}[1]{\vspace{.5em}\begin{tcolorbox}[boxrule=0pt,colback=mygray] #1 \end{tcolorbox}}
+
+\lstset{
+keywordstyle=\color{blue},
+commentstyle=\color{red},stringstyle=\color[rgb]{0,.5,0},
+literate={~}{$\sim$}{1},
+basicstyle=\ttfamily\small,
+columns=fullflexible,
+breaklines=true,
+breakatwhitespace=false,
+numbers=left,
+numberstyle=\ttfamily\tiny\color{gray},
+stepnumber=1,
+numbersep=10pt,
+backgroundcolor=\color{white},
+tabsize=4,
+keepspaces=true,
+showspaces=false,
+showstringspaces=false,
+xleftmargin=.23in,
+frame=single,
+basewidth={0.5em,0.4em},
+}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{David Chen, Thomas Gerds, Helene Rytgaard}
+\date{}
+\title{ConCR-TMLE R Paper}
+\begin{document}
+
+\maketitle
+\abstract{
+An abstract of less than 150 words.
+}
+
+\section{Introduction}
+Introductory section which may include references in parentheses
+\citep{R}, or cite a reference such as \citet{R} in the text. 
+
+\section{Data Structure}
+Consider a survival analysis on an interval $[0,\,t_{max}]$ with competing risks. Let $T^a_j$ denote counterfactual time-to-event variables for event $j$ and intervention $a$, for competing events $j \in \mathcal{J} = \{1, 2, \dots, J\}$ and an intervention $a \in \mathcal{A}$. Our counterfactual data structure can then be denoted by
+\[(T^a_j,\;\X\,:\;a\in\mathcal{A},\;j\in\mathcal{J})\]
+where $\X \in \mathbb{R}^d$ is a $d$-dimensional vector of baseline covariates. For a single time-point binary intervention, as in many randomized control trials, $\mathcal{A} = \{0, 1\}$ and the corresponding counterfactual data is 
+\[ (T^1_j,\; T^0_j,\;\X\,: \;j\in\mathcal{J})\]
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
+\begin{lstlisting}
+## sample data.table for counterfactual data
+\end{lstlisting}
+
+\noindent Let $O$ denote the corresponding coarsened observed data where $O \sim P_0$. The observed data would include the time-to-censoring $C$, and observed intervention $A$. The time to first event (censoring or otherwise) we denote as $\T = \min(C,\; T_j\,: \; j \in \mathcal{J})$ with $\Delta = (\argmin\limits_j T_j) \times \1(\min\limits_j T_j \leq C)$ marking which outcome is observed ($\Delta = 0$ being that censoring occurred). The observable right-censored survival data with competing events can then be represented as 
+\[O = (\T,\;\Delta,\;A,\;\X)\]
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
+\begin{lstlisting}
+## sample data.table of the observed data correlating to the above counterfactual data example
+\end{lstlisting}
+
+This observed data also allows the ``long-format" formulation, where with single time-point intervention variable $A$ and baseline covariate vector $\X$,
+\[O = (N_j(t),\;N_c(t),\;A,\;\X\,:\, j\in\mathcal{J}, t \leq \T)\] 
+Here $N_j(t) = \1(\T \leq t, \Delta = j)$ and $N_c(t) = \1(\T \leq t, \Delta = 0)$ denote counting processes for event $j$ and censoring respectively.
+
+Under coarsening at random (CAR), the observed data likelihood can be factorized as 
+\[p(O) = p(\X)\, \g(A \mid \X)\, \lambda_c(\T \AX)^{\1(\Delta = 0)} S_c(\T\text{-} \AX) \prod_{j=1}^{J} S(\T\text{-} \AX) \lambda_j(\T \AX)^{\1(\Delta = j)} \]
+where $\lambda_c(t \AX)$ is the hazard of the censoring process and $\lambda_j(t \AX)$ is the hazard of the $j^{th}$ event process. Additionally 
+\[S_c(t \ax) = \exp\left(-\int_{0}^{t} \lambda_c(s \ax) \,ds\right)\]  
+while in a pure competing risks setting 
+\begin{align*}
+    S(t \ax) &= \exp\left(-\int_{0}^{t} \sum_{j=1}^{J} \lambda_j(s \ax) \,ds\right)
+\end{align*}
+and 
+\begin{align*}
+    F_j(t \ax) &= \int_{0}^{t} S(s\text{-} \ax) \lambda_j(s \ax)\,ds\\
+    &= \int_{0}^{t} \exp\bigg(-\int_{0}^{s} \sum_{j=1}^{J} \lambda_j(u \ax)\,du\bigg) \lambda_j(s \ax)\,ds
+\end{align*}
+
+\section{Target Parameter}
+% Given identifiability assumptions, for a desired treatment regime $A = \trt \in \{0, 1\}$ and prevention of the censoring process, the post-intervention distribution is 
+% \[p(o) = p(\x)\, \1(a = \trt)\, \prod_{j=1}^{J} S(\t\text{-} \ax) \lambda_j(\t \ax)^{\1(\delta = j)}\]
+For a target parameter of the treatment regime $\trt$, cause $\jj \in \J$ cumulative risk at time $\tk$
+\begin{align*}
+    \Psi_{\trt, \jj, \tk}(P_0) &= \mathbb{E}\left[F_\jj(\tk \mid A = \trt,\,\X)\right]
+\end{align*}
+the corresponding efficient influence function $D^{*}_{\trt, \jj, \tk}(P)(O) $ is
+\begin{align*}
+    \sum_{j = 1}^{J} \int_{0}^{\tk} &\frac{\1(A = \trt)\, \1(s \leq \tk)}{\g(A \mid \X)\,S_c(s\text{-} \AX)} \left(\1(\delta = \jj) - \frac{F_\jj(\tk \AX) - F_\jj(s \AX)}{S(s \AX)}\right) \left(N_j(ds) - \1(\T \geq s)\,\lambda_j(s \AX)\right) \,ds\\[2mm]
+    &\hspace{2cm}+ F_\jj(t \mid A = \trt,\,\X) - \Psi_{\trt, \jj, \tk}(P_0)
+\end{align*}
+
+with a clever covariate  $h_{\trt, \jj, j, \tk, s}$ 
+\begin{align*}
+    h_{\trt,\, \jj,\, j,\, \tk,\, s} = \frac{\1(A = \trt)\, \1(s \leq \tk)}{\g(A \mid \X) S_c(s\text{-} \AX)} \left(\1(\delta = \jj) - \frac{F_\jj(\tk \AX) - F_\jj(s \AX)}{S(s \AX)}\right)
+\end{align*}
+
+The components of the data distribution that must be estimated are $g(A \mid \X)$ and $S_c(t \AX)$, $\lambda_j(t \AX)$, $\F_j(t \AX)$, and $S(t \AX)$
+
+\section{Estimation}
+\subsection{Cross-Validation Specification}
+Let $D_n = \{O_i\}_{i=1}^n$ be an observed sample of $n$ i.i.d observations of $O \sim P_0$. For $V$-fold cross validation, let $B_n = \{1, ... , V\}^n$ be a random vector that assigns the $n$ observations into $V$ validation folds. For each $v$ in $\{1, ..., V\}$ we then define the set of training indices $\mathcal{T}_v = \{i : B_n(i) = v\}$ with the corresponding set of validation indices $\mathcal{V}_v = \{i : B_n(i) \neq v\}$.
+
+\subsubsection{Stratified Cross-Validation}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
+\begin{lstlisting}
+# StrataIDs <- as.numeric(factor(paste0(Data[["Trt"]], ":", Data[["Event"]])))
+# CVFolds <- origami::make_folds(n = Data, fold_fun = origami::folds_vfold, strata_ids = StrataIDs)
+\end{lstlisting}
+\end{document}
