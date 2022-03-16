@@ -1,16 +1,12 @@
-% Created 2022-03-15 Tue 16:13
+% Created 2022-03-16 Wed 11:55
 % Intended LaTeX compiler: pdflatex
-\documentclass{article}
-               \usepackage{listings}
-\usepackage{color}
-\usepackage{amsmath}
-\usepackage{array}
-\usepackage[T1]{fontenc}
-\usepackage{natbib}
-               \usepackage[utf8]{inputenc}
+\documentclass{report}
+                              \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb,array}
 \usepackage{booktabs}
+\usepackage{natbib}
+\usepackage{listings}
 \newcommand{\J}{\ensuremath{J}}
 \newcommand{\1}{\ensuremath{\mathbf{1}}}
 \DeclareMathOperator*{\argmax}{argmax}
@@ -54,18 +50,8 @@ xleftmargin=.23in,
 frame=single,
 basewidth={0.5em,0.4em},
 }
-
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{graphicx}
-\usepackage{longtable}
-\usepackage{wrapfig}
-\usepackage{rotating}
-\usepackage[normalem]{ulem}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{capt-of}
-\usepackage{hyperref}
+\renewcommand*\familydefault{\sfdefault}
+\itemsep2pt
 \author{David Chen, Thomas Gerds, Helene Rytgaard}
 \date{}
 \title{ConCR-TMLE R Paper}
@@ -76,14 +62,15 @@ basewidth={0.5em,0.4em},
 An abstract of less than 150 words.
 }
 
-\section{Introduction}
-Introductory section which may include references in parentheses
-\citep{R}, or cite a reference such as \citet{R} in the text. 
+\section*{Introduction}
+\label{sec:org3d0f01a}
 
-\section{Data Structure}
-Consider a survival analysis on an interval $[0,\,t_{max}]$ with competing risks. Let $T^a_j$ denote counterfactual time-to-event variables for event $j$ and intervention $a$, for competing events $j \in \mathcal{J} = \{1, 2, \dots, J\}$ and an intervention $a \in \mathcal{A}$. Our counterfactual data structure can then be denoted by
+\section*{Data Structure}
+\label{sec:orgabf1270}
+
+Consider a survival analysis on an interval \([0,\,t_{max}]\) with competing risks. Let \(T^a_j\) denote counterfactual time-to-event variables for event \(j\) and intervention \(a\), for competing events \(j \in \mathcal{J} = \{1, 2, \dots, J\}\) and an intervention \(a \in \mathcal{A}\). Our counterfactual data structure can then be denoted by
 \[(T^a_j,\;\X\,:\;a\in\mathcal{A},\;j\in\mathcal{J})\]
-where $\X \in \mathbb{R}^d$ is a $d$-dimensional vector of baseline covariates. For a single time-point binary intervention, as in many randomized control trials, $\mathcal{A} = \{0, 1\}$ and the corresponding counterfactual data is 
+where \(\X \in \mathbb{R}^d\) is a \$d\$-dimensional vector of baseline covariates. For a single time-point binary intervention, as in many randomized control trials, \(\mathcal{A} = \{0, 1\}\) and the corresponding counterfactual data is 
 \[ (T^1_j,\; T^0_j,\;\X\,: \;j\in\mathcal{J})\]
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
@@ -99,25 +86,29 @@ where $\X \in \mathbb{R}^d$ is a $d$-dimensional vector of baseline covariates. 
 ## sample data.table of the observed data correlating to the above counterfactual data example
 \end{lstlisting}
 
-This observed data also allows the ``long-format" formulation, where with single time-point intervention variable $A$ and baseline covariate vector $\X$,
-\[O = (N_j(t),\;N_c(t),\;A,\;\X\,:\, j\in\mathcal{J}, t \leq \T)\] 
-Here $N_j(t) = \1(\T \leq t, \Delta = j)$ and $N_c(t) = \1(\T \leq t, \Delta = 0)$ denote counting processes for event $j$ and censoring respectively.
+This observed data also allows the ``long-format'' formulation, where
+with single time-point intervention variable \(A\) and baseline
+covariate vector \(\X\), \[O = (N_j(t),\;N_c(t),\;A,\;\X\,:\,
+j\in\mathcal{J}, t \leq \T)\] Here \(N_j(t) = \1(\T \leq t, \Delta =
+j)\) and \(N_c(t) = \1(\T \leq t, \Delta = 0)\) denote counting processes
+for event \(j\) and censoring respectively.
 
 Under coarsening at random (CAR), the observed data likelihood can be factorized as 
 \[p(O) = p(\X)\, \g(A \mid \X)\, \lambda_c(\T \AX)^{\1(\Delta = 0)} S_c(\T\text{-} \AX) \prod_{j=1}^{J} S(\T\text{-} \AX) \lambda_j(\T \AX)^{\1(\Delta = j)} \]
-where $\lambda_c(t \AX)$ is the hazard of the censoring process and $\lambda_j(t \AX)$ is the hazard of the $j^{th}$ event process. Additionally 
+where \(\lambda_c(t \AX)\) is the hazard of the censoring process and \(\lambda_j(t \AX)\) is the hazard of the \(j^{th}\) event process. Additionally 
 \[S_c(t \ax) = \exp\left(-\int_{0}^{t} \lambda_c(s \ax) \,ds\right)\]  
 while in a pure competing risks setting 
+
 \begin{align*}
     S(t \ax) &= \exp\left(-\int_{0}^{t} \sum_{j=1}^{J} \lambda_j(s \ax) \,ds\right)
-\end{align*}
-and 
-\begin{align*}
+\intertext{and} 
     F_j(t \ax) &= \int_{0}^{t} S(s\text{-} \ax) \lambda_j(s \ax)\,ds\\
-    &= \int_{0}^{t} \exp\bigg(-\int_{0}^{s} \sum_{j=1}^{J} \lambda_j(u \ax)\,du\bigg) \lambda_j(s \ax)\,ds
+    &= \int_{0}^{t} \exp\bigg(-\int_{0}^{s} \sum_{j=1}^{J} \lambda_j(u \ax)\,du\bigg) \lambda_j(s \ax)\,ds.
 \end{align*}
 
-\section{Target Parameter}
+\section*{Target Parameter}
+\label{sec:org257f760}
+
 % Given identifiability assumptions, for a desired treatment regime $A = \trt \in \{0, 1\}$ and prevention of the censoring process, the post-intervention distribution is 
 % \[p(o) = p(\x)\, \1(a = \trt)\, \prod_{j=1}^{J} S(\t\text{-} \ax) \lambda_j(\t \ax)^{\1(\delta = j)}\]
 For a target parameter of the treatment regime $\trt$, cause $\jj \in \J$ cumulative risk at time $\tk$
@@ -137,11 +128,14 @@ with a clever covariate  $h_{\trt, \jj, j, \tk, s}$
 
 The components of the data distribution that must be estimated are $g(A \mid \X)$ and $S_c(t \AX)$, $\lambda_j(t \AX)$, $F_j(t \AX)$, and $S(t \AX)$
 
-\section{Estimation}
-\subsection{Cross-Validation Specification}
-Let $D_n = \{O_i\}_{i=1}^n$ be an observed sample of $n$ i.i.d observations of $O \sim P_0$. For $V$-fold cross validation, let $B_n = \{1, ... , V\}^n$ be a random vector that assigns the $n$ observations into $V$ validation folds. For each $v$ in $\{1, ..., V\}$ we then define the set of training indices $\mathcal{T}_v = \{i : B_n(i) = v\}$ with the corresponding set of validation indices $\mathcal{V}_v = \{i : B_n(i) \neq v\}$.
+\section*{Estimation}
+\label{sec:org036f733}
+\subsection*{Cross-Validation Specification}
+\label{sec:org0c0a4a1}
+Let \(D_n = \{O_i\}_{i=1}^n\) be an observed sample of \(n\) i.i.d observations of \(O \sim P_0\). For \(V\text{-fold}\) cross validation, let \(B_n = \{1, ... , V\}^n\) be a random vector that assigns the \(n\) observations into \(V\) validation folds. For each \(v \in \{1, ..., V\}\) we then define training set \(D^\mathcal{T}_v = \{O_i : B_n(i) = v\}\) with the corresponding validation set \(D^\mathcal{V}_v = \{O_i : B_n(i) \neq v\}\).
 
-\subsubsection{Stratified Cross-Validation}
+\subsubsection*{Stratified Cross-Validation}
+\label{sec:org428689e}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
 \begin{lstlisting}
@@ -149,7 +143,9 @@ Let $D_n = \{O_i\}_{i=1}^n$ be an observed sample of $n$ i.i.d observations of $
 # CVFolds <- origami::make_folds(n = Data, fold_fun = origami::folds_vfold, strata_ids = StrataIDs)
 \end{lstlisting}
 
-\subsection{Propensity Score}
-For $\pi : D_n \to  $ Let $L_\pi$ be a loss function such that the risk $\mathbb{E}_0\left[L_\pi(\Hat{\pi}, O)\right]$ is minimized when $\Hat{\pi} = \pi_0$. For instance, with a binary $A$, we may specify the negative log loss $L_\pi(\Hat{\pi}, O) = \text{-}\log\left(\Hat{\pi}(1 \mid \X)^A \; \Hat{\pi}(0 \mid \X))^{1-A}\right)$. Let $\mathcal{M_\pi}$ be the set of candidate propensity score models. The discrete superlearner selector chooses the candidate propensity score model with the minimal cross validated risk 
-\[ \Hat{\pi}^{SL} = \argmin_{\mathcal{M}_\pi} \sum_{v = 1}^{V} \]
+\subsection*{Propensity Score Estimation}
+\label{sec:orgd2f7326}
+
+For the conditional distribution of $A$ given $\X$, $\pi(\cdot \mid \X)$, and $\Hat{\pi} : D_n \to \Hat{\pi}(D_n)$, let $L_\pi$ be a loss function such that the risk $\mathbb{E}_0\left[L_\pi(\Hat{\pi}, O)\right]$ is minimized when $\Hat{\pi} = \pi_0$. For instance, with a binary $A$, we may specify the negative log loss $L_\pi(\Hat{\pi}, O) = \text{-}\log\left(\Hat{\pi}(1 \mid \X)^A \; \Hat{\pi}(0 \mid \X))^{1-A}\right)$. Let $\mathcal{M_\pi}$ be the set of candidate propensity score models. The discrete superlearner selector chooses the candidate propensity score model with the minimal cross validated risk 
+\[ \Hat{\pi}^{SL} = \argmin_{\Hat{\pi} \in \mathcal{M}_\pi} \sum_{v = 1}^{V} P_{D^\mathcal{V}_v} \; L_\pi(\Hat{\pi}(D^\mathcal{T}_v), D^\mathcal{V}_v)\]
 \end{document}
