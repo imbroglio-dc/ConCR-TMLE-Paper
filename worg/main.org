@@ -44,12 +44,38 @@ An abstract of less than 150 words.
 
 Consider a survival analysis on an interval $[0,\,t_{max}]$ with competing risks. Let $T^a_j$ denote counterfactual time-to-event variables for event $j$ and intervention $a$, for competing events $j \in \mathcal{J} = \{1, 2, \dots, J\}$ and an intervention $a \in \mathcal{A}$. Our counterfactual data structure can then be denoted by
 \[(T^a_j,\;\X\,:\;a\in\mathcal{A},\;j\in\mathcal{J})\]
-where $\X \in \mathbb{R}^d$ is a $d$-dimensional vector of baseline covariates. For a single time-point binary intervention, as in many randomized control trials, $\mathcal{A} = \{0, 1\}$ and the corresponding counterfactual data is 
+where $\X \in \mathbb{R}^d$ is a \(d\)-dimensional vector of baseline covariates. For a single time-point binary intervention, as in many randomized control trials, $\mathcal{A} = \{0, 1\}$ and the corresponding counterfactual data is 
 \[ (T^1_j,\; T^0_j,\;\X\,: \;j\in\mathcal{J})\]
 
+#+name: data
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
-  ## sample data.table for counterfactual data
+#+BEGIN_SRC R  :results output raw  :exports none  :session *R* :cache no  :eval always
+  set.seed(123456)
+  n <- 100
+  A <- rbinom(n, 1, .3)
+  L1 <- rnorm(n, 0, 1)
+  L3 <- runif(n, 0, 5)
+  L2 <- as.factor(rbinom(n, 5, 0.6))
+  T.j1.a1 <- rweibull(n, 1, 1)
+  T.j1.a0 <- rweibull(n, 1, 1.2)
+  T.j2.a1 <- rweibull(n, 1.3, 1)
+  T.j2.a0 <- rweibull(n, 1.3, .9)
+  C <- rexp(n, 1.8)
+
+  T.A <- pmin(T.j1.a1*(A == 1) + T.j1.a0*(A==0),
+	      T.j2.a1*(A==1) + T.j2.a0*(A==0))
+  T.tilde <- pmin(T.A, C)
+  Delta <- as.numeric(T.A <= C)
+  counterfactuals <- data.frame(T.j1.a0 = T.j1.a0, T.j1.a1 = T.j1.a1,
+				T.j2.a0 = T.j2.a0, T.j2.a1 = T.j2.a1,
+				L1 = L1, L2 = L2, L3 = L3)
+  observed <- data.frame(T.tilde = T.tilde, Delta = Delta,
+                       A = A, L1 = L1, L2 = L2, L3 = L3)
+#+END_SRC
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output raw  :exports both :session *R* :cache yes
+  head(counterfactuals)
 #+END_SRC
 
 #+begin_export latex
@@ -58,22 +84,13 @@ where $\X \in \mathbb{R}^d$ is a $d$-dimensional vector of baseline covariates. 
 #+end_export
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
-  ## sample data.table of the observed data correlating to the above counterfactual data example
+#+BEGIN_SRC R  :results output raw  :exports both :session *R* :cache yes  
+  head(observed)
 #+END_SRC
 
-This observed data also allows the ``long-format'' formulation, where
-with single time-point intervention variable $A$ and baseline
-covariate vector $\X$, \[O = (N_j(t),\;N_c(t),\;A,\;\X\,:\,
-j\in\mathcal{J}, t \leq \T)\] Here $N_j(t) = \1(\T \leq t, \Delta =
-j)$ and $N_c(t) = \1(\T \leq t, \Delta = 0)$ denote counting processes
-for event $j$ and censoring respectively.
+This observed data also allows the ``long-format'' formulation, where with single time-point intervention variable $A$ and baseline covariate vector $\X$, \[O = (N_j(t),\;N_c(t),\;A,\;\X\,:\, j\in\mathcal{J}, t \leq \T)\] Here $N_j(t) = \1(\T \leq t, \Delta = j)$ and $N_c(t) = \1(\T \leq t, \Delta = 0)$ denote counting processes for event $j$ and censoring respectively.
 
-Under coarsening at random (CAR), the observed data likelihood can be factorized as 
-\[p(O) = p(\X)\, \g(A \mid \X)\, \lambda_c(\T \AX)^{\1(\Delta = 0)} S_c(\T\text{-} \AX) \prod_{j=1}^{J} S(\T\text{-} \AX) \lambda_j(\T \AX)^{\1(\Delta = j)} \]
-where $\lambda_c(t \AX)$ is the hazard of the censoring process and $\lambda_j(t \AX)$ is the hazard of the $j^{th}$ event process. Additionally 
-\[S_c(t \ax) = \exp\left(-\int_{0}^{t} \lambda_c(s \ax) \,ds\right)\]  
-while in a pure competing risks setting 
+Under coarsening at random (CAR), the observed data likelihood can be factorized as \[p(O) = p(\X)\, \g(A \mid \X)\, \lambda_c(\T \AX)^{\1(\Delta = 0)} S_c(\T\text{-} \AX) \prod_{j=1}^{J} S(\T\text{-} \AX) \lambda_j(\T \AX)^{\1(\Delta = j)} \] where $\lambda_c(t \AX)$ is the hazard of the censoring process and $\lambda_j(t \AX)$ is the hazard of the $j^{th}$ event process. Additionally \[S_c(t \ax) = \exp\left(-\int_{0}^{t} \lambda_c(s \ax) \,ds\right)\] while in a pure competing risks setting
 
 #+begin_export latex
 \begin{align*}
@@ -101,7 +118,7 @@ the corresponding efficient influence function $D^{*}_{\trt, \jj, \tk}(P)(O) $ i
 
 with a clever covariate  $h_{\trt, \jj, j, \tk, s}$ 
 \begin{align*}
-    h_{\trt,\, \jj,\, j,\, \tk,\, s} = \frac{\1(A = \trt)\, \1(s \leq \tk)}{\g(A \mid \X) S_c(s\text{-} \AX)} \left(\1(\delta = \jj) - \frac{F_\jj(\tk \AX) - F_\jj(s \AX)}{S(s \AX)}\right)
+    h_{\trt,\, \jj,\, j,\, \tk}(s) = \frac{\1(A = \trt)\, \1(s \leq \tk)}{\g(A \mid \X) S_c(s\text{-} \AX)} \left(\1(\delta = \jj) - \frac{F_\jj(\tk \AX) - F_\jj(s \AX)}{S(s \AX)}\right)
 \end{align*}
 
 The components of the data distribution that must be estimated are $g(A \mid \X)$ and $S_c(t \AX)$, $\lambda_j(t \AX)$, $F_j(t \AX)$, and $S(t \AX)$
@@ -136,9 +153,58 @@ For the conditional distribution of $A$ given $\X$, $\pi(\cdot \mid \X)$, and $\
         covariates = colnames(CovDataTable),
         outcome = "Trt")
 
-    TrtSL <- sl3::Lrnr_sl$new(learners = Models[["A"]], folds = CVFolds)
-    TrtFit <- TrtSL$train(TrtTask)
+    # TrtSL <- sl3::Lrnr_sl$new(learners = Models[["A"]], folds = CVFolds)
+    # TrtFit <- TrtSL$train(TrtTask)
      }
    }
  }
 #+END_SRC
+
+
+** Hazard Estimation
+
+*** Censoring Estimation
+What is needed is the lagged censoring survival. Currently estimated using Cox hazard estimate with partial log likelihood loss.
+
+*** Cause-Specific Hazard Estimation
+Cause-specific Hazards are needed for computing the EIC, and can be used to calculate the cause-specific absolute risks and event-free survival.
+Currently estimated using Cox with partial log likelihood loss.
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
+  getInitialEstimates <- function(...) {
+    getHazFits <- function(...) { Discrete SuperLearner for only Cox}
+    getHazSurvPreds <- function() {}
+    return(HazPreds, SurvPreds, SLModelInfo)
+    }
+  }
+#+END_SRC
+
+* Computing the Efficient Influence Function
+For a desired treatment regime \(\trt\),\\
+Targets: table of combinations of Target Times and Target Events\\
+EvalTimes: \(s = (t_1, ..., t_m)\), vector of event times and target times (sum over EvalTimes used as integrating over time)\\
+
+For every target event and target time combination, for every person...
+
+** Nuisance Weight
+PropScore, LaggedCensSurv
+\begin{align*}
+     \frac{1}{\g(A \mid \X) S_c(s\text{-} \AX)}
+\end{align*}
+
+** Clever Covariate \(h_{\trt, \jj, j, \tk}(s)\)
+stored cause-specific hazards and event-free survival are used to calculate absolute risks, then combined with the nuisance weight to calculate the clever covariate
+
+\begin{align*}
+    h_{\trt,\, \jj,\, j,\, \tk}(s) = \1(A = \trt)\, \1(s \leq \tk)
+\times \text{NuisanceWeight} \times \left(\1(\delta = \jj) - \frac{F_\jj(\tk \AX) - F_\jj(s \AX)}{S(s \AX)}\right)
+\end{align*}
+
+** EIC
+The sum over Events and over time are done in a per person loop, the addition of the absolute risk and subtraction of the target estimand are done later, outside of the loop.
+\begin{align*}
+    \sum_{j = 1}^{J} \int_{0}^{\tk \wedge \Tilde{t}} \;  h_{\trt,\, \jj,\, j,\, \tk}(s) &\times \left(N_j(ds) - \1(\T \geq s)\,\lambda_j(s \AX)\right) \,ds\\[2mm]
+    &{\color{red}+ F_\jj(t \mid A = \trt,\,\X) - \Psi_{\trt, \jj, \tk}(P_0)}
+\end{align*}
+
