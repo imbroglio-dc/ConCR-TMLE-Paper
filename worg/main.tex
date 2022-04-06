@@ -1,4 +1,4 @@
-% Created 2022-03-16 Wed 11:55
+% Created 2022-03-16 Wed 13:40
 % Intended LaTeX compiler: pdflatex
 \documentclass{report}
                               \usepackage[utf8]{inputenc}
@@ -63,14 +63,14 @@ An abstract of less than 150 words.
 }
 
 \section*{Introduction}
-\label{sec:org3d0f01a}
+\label{sec:org294feb9}
 
 \section*{Data Structure}
-\label{sec:orgabf1270}
+\label{sec:org092e9f3}
 
 Consider a survival analysis on an interval \([0,\,t_{max}]\) with competing risks. Let \(T^a_j\) denote counterfactual time-to-event variables for event \(j\) and intervention \(a\), for competing events \(j \in \mathcal{J} = \{1, 2, \dots, J\}\) and an intervention \(a \in \mathcal{A}\). Our counterfactual data structure can then be denoted by
 \[(T^a_j,\;\X\,:\;a\in\mathcal{A},\;j\in\mathcal{J})\]
-where \(\X \in \mathbb{R}^d\) is a \$d\$-dimensional vector of baseline covariates. For a single time-point binary intervention, as in many randomized control trials, \(\mathcal{A} = \{0, 1\}\) and the corresponding counterfactual data is 
+where \(\X \in \mathbb{R}^d\) is a \(d\)-dimensional vector of baseline covariates. For a single time-point binary intervention, as in many randomized control trials, \(\mathcal{A} = \{0, 1\}\) and the corresponding counterfactual data is 
 \[ (T^1_j,\; T^0_j,\;\X\,: \;j\in\mathcal{J})\]
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
@@ -107,7 +107,7 @@ while in a pure competing risks setting
 \end{align*}
 
 \section*{Target Parameter}
-\label{sec:org257f760}
+\label{sec:orga9acef7}
 
 % Given identifiability assumptions, for a desired treatment regime $A = \trt \in \{0, 1\}$ and prevention of the censoring process, the post-intervention distribution is 
 % \[p(o) = p(\x)\, \1(a = \trt)\, \prod_{j=1}^{J} S(\t\text{-} \ax) \lambda_j(\t \ax)^{\1(\delta = j)}\]
@@ -129,13 +129,13 @@ with a clever covariate  $h_{\trt, \jj, j, \tk, s}$
 The components of the data distribution that must be estimated are $g(A \mid \X)$ and $S_c(t \AX)$, $\lambda_j(t \AX)$, $F_j(t \AX)$, and $S(t \AX)$
 
 \section*{Estimation}
-\label{sec:org036f733}
+\label{sec:org0a66d6f}
 \subsection*{Cross-Validation Specification}
-\label{sec:org0c0a4a1}
+\label{sec:org1e8d6f5}
 Let \(D_n = \{O_i\}_{i=1}^n\) be an observed sample of \(n\) i.i.d observations of \(O \sim P_0\). For \(V\text{-fold}\) cross validation, let \(B_n = \{1, ... , V\}^n\) be a random vector that assigns the \(n\) observations into \(V\) validation folds. For each \(v \in \{1, ..., V\}\) we then define training set \(D^\mathcal{T}_v = \{O_i : B_n(i) = v\}\) with the corresponding validation set \(D^\mathcal{V}_v = \{O_i : B_n(i) \neq v\}\).
 
 \subsubsection*{Stratified Cross-Validation}
-\label{sec:org428689e}
+\label{sec:orga507f6e}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
 \begin{lstlisting}
@@ -144,8 +144,25 @@ Let \(D_n = \{O_i\}_{i=1}^n\) be an observed sample of \(n\) i.i.d observations 
 \end{lstlisting}
 
 \subsection*{Propensity Score Estimation}
-\label{sec:orgd2f7326}
+\label{sec:orga5d0a29}
 
 For the conditional distribution of $A$ given $\X$, $\pi(\cdot \mid \X)$, and $\Hat{\pi} : D_n \to \Hat{\pi}(D_n)$, let $L_\pi$ be a loss function such that the risk $\mathbb{E}_0\left[L_\pi(\Hat{\pi}, O)\right]$ is minimized when $\Hat{\pi} = \pi_0$. For instance, with a binary $A$, we may specify the negative log loss $L_\pi(\Hat{\pi}, O) = \text{-}\log\left(\Hat{\pi}(1 \mid \X)^A \; \Hat{\pi}(0 \mid \X))^{1-A}\right)$. Let $\mathcal{M_\pi}$ be the set of candidate propensity score models. The discrete superlearner selector chooses the candidate propensity score model with the minimal cross validated risk 
 \[ \Hat{\pi}^{SL} = \argmin_{\Hat{\pi} \in \mathcal{M}_\pi} \sum_{v = 1}^{V} P_{D^\mathcal{V}_v} \; L_\pi(\Hat{\pi}(D^\mathcal{T}_v), D^\mathcal{V}_v)\]
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
+\begin{lstlisting}
+getInitialEstimates <- function(...) {
+  getPropScores <- function(...) {
+    getSl3PropScores <- function {
+      TrtTask <- sl3::make_sl3_Task(
+       data = Data[, -c("Time", "Event", "ID")],
+       covariates = colnames(CovDataTable),
+       outcome = "Trt")
+
+   TrtSL <- sl3::Lrnr_sl$new(learners = Models[["A"]], folds = CVFolds)
+   TrtFit <- TrtSL$train(TrtTask)
+    }
+  }
+}
+\end{lstlisting}
 \end{document}

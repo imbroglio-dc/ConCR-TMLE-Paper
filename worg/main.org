@@ -42,9 +42,9 @@ An abstract of less than 150 words.
 
 * Data Structure
 
-Consider a survival analysis on an interval $[0,\,t_{max}]$ with competing risks. Let $T^a_j$ denote counterfactual time-to-event variables for event $j$ and intervention $a$, for competing events $j \in \mathcal{J} = \{1, 2, \dots, J\}$ and an intervention $a \in \mathcal{A}$. Our counterfactual data structure can then be denoted by
+Consider a survival analysis on an interval $[0,\,t_{max}]$ with competing risks. Let \(T^a_j\) denote counterfactual time-to-event variables for event $j$ and intervention $a$, for competing events $j \in \mathcal{J} = \{1, 2, \dots, J\}$ and an intervention $a \in \mathcal{A}$. Our counterfactual data structure can then be denoted by
 \[(T^a_j,\;\X\,:\;a\in\mathcal{A},\;j\in\mathcal{J})\]
-where $\X \in \mathbb{R}^d$ is a $d$-dimensional vector of baseline covariates. For a single time-point binary intervention, as in many randomized control trials, $\mathcal{A} = \{0, 1\}$ and the corresponding counterfactual data is 
+where $\X \in \mathbb{R}^d$ is a \(d\)-dimensional vector of baseline covariates. For a single time-point binary intervention, as in many randomized control trials, $\mathcal{A} = \{0, 1\}$ and the corresponding counterfactual data is 
 \[ (T^1_j,\; T^0_j,\;\X\,: \;j\in\mathcal{J})\]
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
