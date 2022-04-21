@@ -1,7 +1,8 @@
-% Created 2022-04-04 Mon 13:22
+% Created 2022-04-21 Thu 13:43
 % Intended LaTeX compiler: pdflatex
 \documentclass{report}
                               \usepackage[utf8]{inputenc}
+\usepackage{xcolor}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb,array}
 \usepackage{booktabs}
@@ -22,8 +23,11 @@
 \newcommand{\x}{\ensuremath{{x}}}
 \newcommand{\trt}{\ensuremath{\pi^*}}
 \newcommand{\tk}{\ensuremath{\tau}}
-\newcommand{\lj}{\ensuremath{j}}
-\newcommand{\jj}{\ensuremath{k}}
+\newcommand{\lj}{\ensuremath{l}}
+\newcommand{\jj}{\ensuremath{j}}
+\newcommand{\tK}{\ensuremath{K}}
+\newcommand{\tKi}{\ensuremath{k}}
+\newcommand{\TK}{\ensuremath{\mathcal{T}}}
 \newcommand{\g}{\ensuremath{\pi}}
 \RequirePackage{tcolorbox}
 \definecolor{lightGray}{gray}{0.98}
@@ -65,10 +69,10 @@ An abstract of less than 150 words.
 }
 
 \section*{Introduction}
-\label{sec:org9ae2a21}
+\label{sec:orgb893514}
 
 \section*{Data Structure}
-\label{sec:org303127d}
+\label{sec:org598502f}
 
 Consider a survival analysis on an interval \([0,\,t_{max}]\) with competing risks. Let \(T^a_j\) denote counterfactual time-to-event variables for event \(j\) and intervention \(a\), for competing events \(j \in \mathcal{J} = \{1, 2, \dots, J\}\) and an intervention \(a \in \mathcal{A}\). Our counterfactual data structure can then be denoted by
 \[(T^a_j,\;\X\,:\;a\in\mathcal{A},\;j\in\mathcal{J})\]
@@ -132,7 +136,7 @@ where \(\lambda_c(t \AX)\) is the hazard of the censoring process and \(\lambda_
 \end{align*}
 
 \section*{Target Parameter}
-\label{sec:org22bfcde}
+\label{sec:orgbb16830}
 Given the identification assumptions of
 \begin{enumerate}
 \item Consistency : \(T = T^a\) when \(A = a\) for $a = 0,1$.
@@ -141,30 +145,30 @@ Given the identification assumptions of
 \end{enumerate}
 the hypothetical distribution for data generated following a desired treatment regime involving \(A \sim \trt(A \mid \X)\) and the prevention of the censoring process can be identified as
 \[p^{\trt}(O) = p(\X)\, \trt(A \mid \X)\, \prod_{j=1}^{J} S(\T\text{-} \AX) \lambda_j(\T \AX)^{\1(\Delta = j)}\]
-For a target parameter of the cause \(\jj \in \J\) absolute risk at time \(\tk\) under this treatment regime \(\trt\), the corresponding efficient influence function is
+For a target parameter of the cause \(\jj \in \J\) absolute risk at time \(\tk \in \TK \subseteq [0, t_{max}]\) under this treatment regime \(\trt\), the corresponding efficient influence function is
 \begin{align*}
-    D^{*}_{\trt, \jj, \tk}(P)(O) &= \sum_{j = 1}^{J} \int_{0}^{\tk} \bigg[h_{\trt, \jj, j, \tk, s}(P)(O) \left(N_j(ds) - \1(\T \geq s)\,\lambda_j(s \AX)\right) \bigg] \,ds\\[2mm]
+    D^{*}_{\trt, \jj, \tk}(P)(O) &= \sum_{j = 1}^{J} \int_{0}^{\tk} \bigg[h_{\trt, \jj, \lj, \tk, s}(P)(O) \left(N_j(ds) - \1(\T \geq s)\,\lambda_\lj(s \AX)\right) \bigg] \,ds\\[2mm]
     &\hspace{2cm}+ \sum_{a=0,1} F_\jj(t \mid A = a, \X)\,\trt(a \mid X) - \Psi_{\trt, \jj, \tk}(P_0)
 \intertext{with the clever covariate}
-h_{\trt, \jj, j, \tk, s}(P)(O) &= \frac{\trt(A \mid \X)\, \1(s \leq \tk)}{\g(A \mid \X) S_c(s\text{-} \AX)} \left(\1(\delta = \jj) - \frac{F_\jj(\tk \AX) - F_\jj(s \AX)}{S(s \AX)}\right)
+h_{\trt, \jj, \lj, \tk, s}(P)(O) &= \frac{\trt(A \mid \X)\, \1(s \leq \tk)}{\g(A \mid \X) S_c(s\text{-} \AX)} \left(\1(\delta = \jj) - \frac{F_\jj(\tk \AX) - F_\jj(s \AX)}{S(s \AX)}\right)
 \end{align*}
 
 As the efficient influence function and clever covariates depend on the treatment distribution \g, the censoring survival function \(S_c\), and the event cause-specific hazards \(\lambda = (\lambda_\lj : j = 1, ..., J)\), we will in subsequent sections use the following alternative notation for clarity when appropriate:
 \begin{align*}
 D^{*}_{\trt, \jj, \tk}(\lambda, \g, S_c)(O) &= D^{*}_{\trt, \jj, \tk}(P)(O)\\
-h_{\trt, \jj, j, \tk, s}(\lambda, \g, S_c)(O)&= h_{\trt, \jj, j, \tk, s}(P)(O)
+h_{\trt, \jj, \lj, \tk, s}(\lambda, \g, S_c)(O)&= h_{\trt, \jj, \lj, \tk, s}(P)(O)
 \end{align*}
 
 Therefore, to efficiently estimate survival-curve derived estimands such as the cause-specific absolute risks, the components of the data distribution that must be estimated are \(\g(A \mid \X)\), \(S_c(t \AX)\), \(\lambda_j(t \AX)\), \(F_j(t \AX)\), and \(S(t \AX)\)
 
 \section*{Estimation}
-\label{sec:orgc6ff7d0}
+\label{sec:org179d30b}
 \subsection*{Cross-Validation Specification}
-\label{sec:org19bf322}
+\label{sec:orgdcae5d7}
 Let \(Q_n = \{O_i\}_{i=1}^n\) be an observed sample of \(n\) i.i.d observations of \(O \sim P_0\). For \(V\text{-fold}\) cross validation, let \(B_n = \{1, ... , V\}^n\) be a random vector that assigns the \(n\) observations into \(V\) validation folds. For each \(v \in \{1, ..., V\}\) we then define training set \(Q^\mathcal{T}_v = \{O_i : B_n(i) = v\}\) with the corresponding validation set \(Q^\mathcal{V}_v = \{O_i : B_n(i) \neq v\}\).
 
 \subsubsection*{Stratified Cross-Validation}
-\label{sec:org435cf16}
+\label{sec:orgcdad14b}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
 \begin{lstlisting}
 StrataIDs <- factor(paste(observed[["A"]], observed[["Delta"]]))
@@ -173,8 +177,9 @@ CVFolds <- origami::make_folds(n = observed,
 			       strata_ids = StrataIDs)
 \end{lstlisting}
 
+
 \subsection*{Propensity Score Estimation}
-\label{sec:orgfb9f4e6}
+\label{sec:orgd3f4483}
 For the true conditional distribution of \(A\) given \(\X\), \(\g_0(\cdot \mid \X)\), and \(\Hat{\g} : Q_n \to \Hat{\g}(Q_n)\), let \(L_\g\) be a loss function such that the risk \(\mathbb{E}_0\left[L_\g(\Hat{\g}, O)\right]\) is minimized when \(\Hat{\g} = \g_0\). For instance, with a binary \(A\), we may specify the negative log loss \(L_\g(\Hat{\g}, O) = \text{-}\log\left(\Hat{\g}(1 \mid \X)^A \; \Hat{\g}(0 \mid \X))^{1-A}\right)\). We can then define the discrete superlearner selector which chooses from a set of candidate models \(\mathcal{M_\g}\) the candidate propensity score model that has minimal cross validated risk 
 \[ \Hat{\g}^{SL} = \argmin_{\Hat{\g} \in \mathcal{M}_\g} \sum_{v = 1}^{V} P_{Q^\mathcal{V}_v} \; L_\g(\Hat{\g}(Q^\mathcal{T}_v), Q^\mathcal{V}_v)\]
 
@@ -183,7 +188,7 @@ This discrete superlearner model \(\Hat{\g}^{SL}\) is then fitted on the full ob
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
 \begin{lstlisting}
 CovDataTable <- observed[, -c("T.tilde", "Delta", "A")]
-Models <- list("Trt" = sl3::make_learner(sl3:::Lrnr_glm))
+Model <- list("Trt" = sl3::make_learner(sl3:::Lrnr_glm))
 Intervention <- list(
   "A=1" = list("intervention" = function(a, L) rep_len(1, length(a)),
 	       "g.star" = function(a, L) {as.numeric(a == 1)}),
@@ -191,86 +196,116 @@ Intervention <- list(
 	       "g.star" = function(a, L) {as.numeric(a == 0)})
 )
 
-RegsOfInterest <- getRegsOfInterest(Intervention = Intervention,
-				    Treatment = observed[["A"]],
-				    CovDataTable = CovDataTable)
+Regime <- getRegime(Intervention = Intervention,
+		    Treatment = observed[["A"]],
+		    CovDataTable = CovDataTable)
 
 PropScores <- getPropScore(Treatment = observed[["A"]],
 			   CovDataTable = CovDataTable,
-			   Models = Models,
+			   Model = Model,
 			   MinNuisance = 0.05,
-			   RegsOfInterest = RegsOfInterest,
+			   Regime = Regime,
 			   PropScoreBackend = "sl3",
 			   CVFolds = CVFolds)
+TrtFit <- PropScores[["TrtFit"]]
+PropScores <- PropScores[["PropScores"]]
 \end{lstlisting}
 
 \subsection*{Hazard Estimation}
-\label{sec:org1187fd1}
+\label{sec:org177a64b}
 Let \(\lambda_{0,\,\delta}\) be the true censoring and cause-specific hazards when \(\delta = 0\) and \(\delta = 1, \dots, J\) respectively. Let \(\mathcal{M}_\delta\) for \(\delta = 0, \dots, J\) be the sets of candidate models, \(\{\Hat{\lambda}_\delta : Q_n \to \Hat{\lambda}_\delta(Q_n)\}\), for the censoring and cause-specific hazards and let \(L_\delta\) be loss functions such that the risks \(\mathbb{E}_0\left[L_\delta(\Hat{\lambda}_\delta, O)\right]\) are minimized when \(\Hat{\lambda}_\delta = \lambda_{0,\,\delta}\), for instance log likelihood loss. We can then define the discrete superlearner selectors for each \(\delta\) which choose from the set of candidate models \(\mathcal{M_\delta}\) the candidate propensity score model that has minimal cross validated risk 
 \[ \Hat{\lambda}_\delta^{SL} = \argmin_{\Hat{\lambda}_\delta \in \mathcal{M}_\delta} \sum_{v = 1}^{V} P_{Q^\mathcal{V}_v} \; L_\g(\Hat{\lambda}_\delta(Q^\mathcal{T}_v), Q^\mathcal{V}_v)\]
 
 These discrete superlearner selections \(\Hat{\lambda}_\delta^{SL}\) are then fitted on the full observed data \(Q_n\) and used to estimate \(\lambda_\delta(t \AX), \, F_\delta(t \AX),\, S(t \AX), \text{ and } S_c(t\text{-} \AX)\) for \(j = 1,\dots, J\).
 
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
+\begin{lstlisting}
+EventTime <- observed$`T.tilde`
+TargetTime <- mean(EventTime)
+Model <- list("0" = list(mod1 = Surv(T.tilde, Delta == 0) ~ A + L1 + L2),
+	      "1" = list(mod1 = Surv(T.tilde, Delta == 1) ~ A + L1 + L2*L3))
+TargetEvent <- 1:2
+MinNuisance <- 0.05
+Censored <- TRUE
+
+HazTimes <- sort(unique(c(TargetTime, EventTime)))
+HazTimes <- HazTimes[HazTimes <= max(TargetTime)]
+Hazards <- data.table("Time" = c(0, HazTimes))
+
+HazFits <- getHazFit(Data = observed,
+		     EventTime = EventTime,
+		     Model = Model,
+		     CVFolds = CVFolds,
+		     Hazards = Hazards)
+HazSurvPreds <- getHazSurvPred(Data = observed,
+			       HazFits = HazFits,
+			       MinNuisance = MinNuiscance,
+			       TargetEvent = TargetEvent,
+			       TargetTime = TargetTime,
+			       Regime = Regime,
+			       Censored = Censored)
+\end{lstlisting}
+
 \subsubsection*{Lagged Censoring Survival}
-\label{sec:org2f22507}
-Let \(\mathcal{S}\) be the set containing all target and observed event times. Then for all \(s \,\in\, \mathcal{S}\) we compute
-\[ \Hat{S}_c(s\text{-} \AX) = \prod_{t \in\mathcal{S}: t < s} \left(1 - \Hat{\lambda}_0^{SL}(t \AX)\right) \]
+\label{sec:org52bff40}
+Let \(\mathcal{S}\) be the set containing all target and observed event times, ordered such that \(s_1 < s_2 < \dots s_{max}\). Then for all \(s_{\tK} \,\in\, \mathcal{S}\) we compute
+\begin{align*}
+\Hat{S}_c(s_{\tK}\text{-} \AX) &= \exp \left(\text{-} \sum_{\tKi = 1}^{\tK-1} \Hat{\lambda}_c^{SL}(s_{\tKi} \AX)\right) \\
+&= \exp\left(\text{-} \int_{0}^{\tK\text{-}} \Hat\lambda^{SL}_c(s \AX) ds\right)\\
+\end{align*}
 
 \subsubsection*{Cause-Specific Hazards, Event-Free Survival, and Cause-Specific Absolute Risks}
-\label{sec:org24348c5}
-For \(\lj = 1,\dots,J\) and \(s \,\in\, \mathcal{S}\), the super learner selections \(\Hat\lambda_\lj^{SL}\) are fit on the full observed data \(Q_n\), and used to compute the event free survival
+\label{sec:org34f7a28}
+For \(\lj = 1,\dots,J\) and \({\tK} \,\in\, \mathcal{S}\), the super learner selections \(\Hat\lambda_\lj^{SL}\) are fit on the full observed data \(Q_n\), and used to compute the event free survival
 \begin{align*}
-\Hat S(s \AX) &= \exp\left(\text{-} \sum_{t \in \mathcal{S}: t \leq s} \sum_{j = 1}^{J} \Hat\lambda^{SL}_j(t \AX) \right)
+\Hat S(s_{\tK} \AX) &= \exp\left(\text{-} \sum_{{\tKi} = 1}^{\tK} \sum_{\lj = 1}^{J} \Hat\lambda^{SL}_\lj(s_{\tKi} \AX) \right)\\
+&= \exp\left(\text{-} \int_{0}^{\tK} \sum_{\lj = 1}^{J} \Hat\lambda^{SL}_\lj(s \AX) ds\right)
 \intertext{cause-specific absolute risks}
-\Hat F_\lj(s \AX) &= \sum_{t \in \mathcal{S}: t \leq s} \Hat S(t \AX) \, \Hat\lambda^{SL}_\lj(t \AX)
+\Hat F_\lj(s_{\tK} \AX) &= \sum_{{\tKi} = 1}^{\tK} \Hat S(s_{\tKi} \AX) \, \Hat\lambda^{SL}_\lj(s_{\tKi} \AX)
 \end{align*}
 
 \section*{Computing the Efficient Influence Function}
-\label{sec:orgc498cea}
+\label{sec:org072daa4}
 For each desired treatment regime \(\trt\), each target time \tk, and each target event \jj, the efficient influence functions for each individual are computed in parts.
 
-\subsection*{Clever Covariate Nuisance Weight}
-\label{sec:orgbba0195}
-For every \(s \,\in\, \mathcal{S}\)
+\subsection*{Clever Covariate \(h_{\trt, \jj, \lj, \tk, s}(O)\)}
+\label{sec:org48244bb}
+For \(\lj = 1,\dots, J\) and \(s \,\in\, \mathcal{S}\), the stored cause-specific hazards \(\Hat\lambda^{SL}_\lj(s \AX)\) and event-free survival \(\Hat S(s \AX)\) are used to calculate the cause-specific absolute risks \(\Hat F_\lj(s \AX)\), then combined with the nuisance weight to calculate the clever covariates.
 \begin{align*}
-     \widehat{NW}_s = \frac{1}{\Hat\g^{SL}(a \mid \x) \Hat S_c(s\text{-} \ax)}
+    h_{\trt,\, \jj,\, \lj,\, \tk,\, s}&(\Hat \lambda, \Hat \g, \Hat S_c)(O) = \\[2mm]
+&\frac{{\color{blue}\trt(A \mid \X)\,} \1(s \leq \tk)}{{\color{green!70!black}\Hat\g^{SL}(A \mid \X) \;
+\Hat S_c(s\text{-} \AX)}} \, \bigg(\1(\Delta = \jj) - \frac{{\color{red}\Hat F_\jj(\tk \AX)} - {\color{red}\Hat F_\jj(s \AX)}}{{\color{red}\Hat S(s \AX)}}\bigg)
 \end{align*}
 
-1 nuisance weight for every individual at every time \(s \,\in\, \mathcal{S}\)
+The clever covariate is a function of the {\color{blue}desired intervention density}, the {\color{green!70!black} observed intervention densities}, and the {\color{red}non-intervention outcome densities}.
 
-\subsection*{Clever Covariate \(h_{\trt, \jj, j, \tk, s}\)}
-\label{sec:org9594f16}
-The stored cause-specific hazards \(\Hat\lambda^{SL}_\lj(s \ax)\) and event-free survival \(\Hat S(s \ax)\) are used to calculate the cause-specific absolute risks \(\Hat F_\lj(s \ax)\), then combined with the nuisance weight to calculate the clever covariates.
-\begin{align*}
-    h_{\trt,\, \jj,\, j,\, \tk,\, s}(\Hat \lambda, \Hat \g, \Hat S_c)(O) = \trt(a \mid \x)\, \1(s \leq \tk)
-\times \widehat{NW}_s \times \left(\1(\delta = \jj) - \frac{F_\jj(\tk \ax) - F_\jj(s \ax)}{S(s \ax)}\right)
-\end{align*}
-
-1 clever covariate for every individual, for every regime of interest, for every target event, for every target time, at every time \(s \,\in\, \mathcal{S}\).
+1 clever covariate value for every individual, for every regime of interest, for every target event, for every target time, at every time \(s \,\in\, \mathcal{S}\).
 
 \subsection*{Estimating the EIC}
-\label{sec:orge0aac09}
-The sum over time and sum over events are done per individual. The addition of the absolute risk and subtraction of the target estimand are done later, outside of the loop over individuals.
+\label{sec:org89e3212}
 \begin{align*}
-    D^*_{\trt, \jj, \tk}(\Hat \lambda, \Hat \g, \Hat S_c)(O) &= \sum_{j = 1}^{J} \sum_{s = t_1}^{\tk \wedge \T} \;  h_{\trt,\, \jj,\, j,\, \tk, s}(\Hat \lambda, \Hat \g, \Hat S_c)(O) \times \left(\1(\Delta = \jj, \T = s) - \1(\T \geq s)\,\lambda_j(s \AX)\right)\\[2mm]
-    &\hspace{2cm} {\color{red}+ \sum_{a\,\in\,\mathcal{A}} F_\jj(\tk \mid A = a, \X)\,\trt(a \mid \X) - \Psi_{\trt, \jj, \tk}(P_0)}
+    D^*_{\trt, \jj, \tk}(\Hat \lambda, \Hat \g, \Hat S_c)(O) &= \sum_{\lj = 1}^{J} \sum_{\tKi = 1}^{\tK} \;  h_{\trt,\, \jj,\, \lj,\, \tk, s}(\Hat \lambda, \Hat \g, \Hat S_c)(O) \\
+&\hspace{2cm}\left(\1(\Delta = \jj, \T = s_{\tKi}) - \1(\T \geq s_\tK) \, \Hat \lambda_\lj(s_{\tKi} \AX)\right)\\[2mm]
+    &\hspace{5mm}{\color{blue!60!black}+ \sum_{a\,\in\,\mathcal{A}} F_\jj(\tk \mid A = a, \X)\,\trt(a \mid \X) - \Psi_{\trt, \jj, \tk}(P_0)}
 \end{align*}
+
+The sum over time and sum over events are done per individual. The addition of the absolute risk and subtraction of the target estimand are done later, outside of the loop over individuals.
 
 1 EIC estimate for every individual, every regime of interest, every target event, and every target time.
 
 \section*{TMLE one-step update}
-\label{sec:org403ccf6}
+\label{sec:org5fca5d1}
 Let \(D^*\) be the vector of efficient influence functions
 \begin{align*}
-D^{*}(\lambda, \g, S_c)(O) &= \left(D^*_{\trt, \jj, \tk}(\lambda, \g, S_c)(O) : \trt \in \mathcal{A}, \jj \in \mathcal{J}, \tk \in [0, t_{max})\right)
+D^{*}(\lambda, \g, S_c)(O) &= \left(D^*_{\trt, \jj, \tk}(\lambda, \g, S_c)(O) : \trt \in \mathcal{A}, \jj \in \mathcal{J}, \tk \in \TK)\right)
 \intertext{and let \(h_{j, s}\) be the vector of clever covariates}
-h_{j, s}(\lambda, \g, S_c)(O) &= \left(h_{\trt, \jj, j, \tk, s}(\lambda, \g, S_c)(O) : \trt \in \mathcal{A}, \jj \in \mathcal{J}, \tk \in [0, t_{max})\right)
+h_{j, s}(\lambda, \g, S_c)(O) &= \left(h_{\trt, \jj, \lj, \tk, s}(\lambda, \g, S_c)(O) : \trt \in \mathcal{A}, \jj \in \mathcal{J}, \tk \in \TK)\right)
 \end{align*}
-The onestep TMLE update of the cause-specific hazards is 
+The one-step TMLE involves updating the cause-specific hazards along the universal least favorable submodel. This is implemented by updating the hazards in small steps along the sequence of locally-least favorable submodels in the following manner:
 \[ \Hat \lambda_{j, \epsilon^d}(t) = \Hat\lambda^{SL}_{j}(t) \, \exp\left(\sum_{i = 1}^{d}\frac{\left<\mathbb{P}_n D^*(\Hat \lambda_{\epsilon^i}, \Hat \g, \Hat S_c)(O),\; h_{j, s}(\Hat \lambda_{\epsilon^i}, \Hat \g, \Hat S_c)(O) \right>_{\Sigma}}{|| D^*(\Hat \lambda_{\epsilon^i}, \Hat \g, \Hat S_c)(O)||_{\Sigma}} \; \epsilon \right)\]
 where
 \[ \left<x, y\right>_{\Sigma} = x^\top \Sigma^{\text{ -}1} y \hspace{.5cm}, \hspace{.5cm} ||x||_{\Sigma} = \sqrt{x^\top \Sigma^{\text{ -}1} x} \]
 
-The default value of \(\epsilon\) in the software is 0.1, and the algorithm stops when
-\[\mathbb{P}_n D^*(\Hat \lambda_{\epsilon^i}, \Hat \g, \Hat S_c)(O) \leq \frac{\sqrt{\mathbb{P}_n \left[D^*(\Hat \lambda_{\epsilon^i}, \Hat \g, \Hat S_c)(O)^2\right]}}{n \, \log(n)}\]
+The default value of \(\epsilon\) in the software is 0.1, and the algorithm stops at \(\epsilon^i\) when
+\[\mathbb{P}_n D^*(\Hat \lambda_{\epsilon^i}, \Hat \g, \Hat S_c)(O) \leq \frac{\sqrt{\mathbb{P}_n \left[D^*(\Hat \lambda_{\epsilon^i}, \Hat \g, \Hat S_c)(O)^2\right]}}{\sqrt{n} \, \log(n)}\]
 \end{document}
