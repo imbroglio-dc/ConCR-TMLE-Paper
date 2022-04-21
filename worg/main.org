@@ -156,8 +156,38 @@ where $\lambda_c(t \AX)$ is the hazard of the censoring process and $\lambda_j(t
     &= \int_{0}^{t} \exp\bigg(-\int_{0}^{s} \sum_{j=1}^{J} \lambda_j(u \ax)\,du\bigg) \lambda_j(s \ax)\,ds.
 \end{align*}
 
-* Target Parameter
-Given the identification assumptions of
+*  What do I need to know before using the package?
+** What the package does not do
+
+- drop-in  (see drop-in JICI project)
+- mediation analysis (see CALM)
+- interval censored data
+- left truncation AKA delayed entry
+- paired or clustered data
+
+** What the package should do in the future but does not yet
+  
+- multi-categorical treatment variables
+- ATT
+- treatment dose
+- longitudinal covariates
+- cross-validated TMLE
+- collaborative TMLE
+- bounded or rare outcome TMLE
+- HAL-TMLE    
+  
+** What is estimated?
+
+A risk difference or risk ratio with our without competing risks for a point treatment.
+
+TMLE is about estimating target parameters which are defined in terms
+of counterfactual outcomes. Most likely you should define the target
+trial that you would like to do in a perfect world but can only
+estimate it from a non-randomized data set.
+
+
+Suppose your target parameter is the causal effect of a treatment,
+then you should consider the usual identification assumptions of
 \begin{enumerate}
 \item Consistency : \(T = T^a\) when \(A = a\) for $a = 0,1$.
 \item No unmeasured confounding: \(T^a \indep A \mid \X\) for $a = 0,1$.
@@ -179,7 +209,18 @@ D^{*}_{\trt, \jj, \tk}(\lambda, \g, S_c)(O) &= D^{*}_{\trt, \jj, \tk}(P)(O)\\
 h_{\trt, \jj, \lj, \tk, s}(\lambda, \g, S_c)(O)&= h_{\trt, \jj, \lj, \tk, s}(P)(O)
 \end{align*}
 
-Therefore, to efficiently estimate survival-curve derived estimands such as the cause-specific absolute risks, the components of the data distribution that must be estimated are $\g(A \mid \X)$, $S_c(t \AX)$, $\lambda_j(t \AX)$, $F_j(t \AX)$, and $S(t \AX)$
+Therefore, to efficiently estimate survival-curve derived estimands
+such as the cause-specific absolute risks, the components of the data
+distribution that must be estimated are $\g(A \mid \X)$, $S_c(t \AX)$,
+$\lambda_j(t \AX)$, $F_j(t \AX)$, and $S(t \AX)$
+
+** Tools from parametric regression and machine learning
+
+At least one of {logistic regression and Cox regression} or {tree based
+regression for binary outcome and survival analysis}.
+
+What if a model does not converge?
+
 
 * Estimation
 ** Cross-Validation Specification
