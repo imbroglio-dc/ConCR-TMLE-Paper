@@ -1,1 +1,7 @@
 * Todo list
+
+- running example to illustrate usage. test if aml data could serve this purpose [D]
+- get into a writing flow by following the running example
+- think about tables and figures for main
+  
+- introduction
