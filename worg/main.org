@@ -56,38 +56,38 @@ where $\X \in \mathbb{R}^d$ is a \(d\)-dimensional vector of baseline covariates
 #+name: data
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw  :exports none  :session *R* :cache no  :eval always
-	library(data.table)
-      library(survival)
-      library(zoo)
-      library(prodlim)
-      library(nleqslv)
-      library(sl3)
-      library(origami)
-	devtools::load_all("/Shared/Projects/ConCR-TMLE/")
-	set.seed(123456)
-	n <- 100
-	A <- rbinom(n, 1, .3)
-	L1 <- rnorm(n, 0, 1)
-	L3 <- runif(n, 0, 5)
-	L2 <- as.factor(rbinom(n, 5, 0.6))
-	T.j1.a1 <- rweibull(n, 1, 1)
-	T.j1.a0 <- rweibull(n, 1, 1.2)
-	T.j2.a1 <- rweibull(n, 1.3, 1)
-	T.j2.a0 <- rweibull(n, 1.3, .9)
-	C <- rexp(n, 1.8)
+library(data.table)
+library(survival)
+library(zoo)
+library(prodlim)
+library(nleqslv)
+library(sl3)
+library(origami)
+devtools::load_all("/Shared/Projects/ConCR-TMLE/")
+set.seed(123456)
+n <- 100
+A <- rbinom(n, 1, .3)
+L1 <- rnorm(n, 0, 1)
+L3 <- runif(n, 0, 5)
+L2 <- as.factor(rbinom(n, 5, 0.6))
+T.j1.a1 <- rweibull(n, 1, 1)
+T.j1.a0 <- rweibull(n, 1, 1.2)
+T.j2.a1 <- rweibull(n, 1.3, 1)
+T.j2.a0 <- rweibull(n, 1.3, .9)
+C <- rexp(n, 1.8)
 
-	T.A <- pmin(T.j1.a1*(A == 1) + T.j1.a0*(A == 0),
-		    T.j2.a1*(A == 1) + T.j2.a0*(A == 0))
-	T.tilde <- pmin(T.A, C)
-	Delta <- as.numeric(T.A <= C)
-	counterfactuals <- data.table(T.j1.a0 = T.j1.a0, T.j1.a1 = T.j1.a1,
-				      T.j2.a0 = T.j2.a0, T.j2.a1 = T.j2.a1,
-				      L1 = L1, L2 = L2, L3 = L3)
-	observed <- data.table(T.tilde = T.tilde, Delta = Delta,
-			       A = A, L1 = L1, L2 = L2, L3 = L3)
-    attr(observed, "EventTime") <- "T.tilde"
-  attr(observed, "EventType") <- "Delta"
-  attr(observed, "Treatment") <- "A"
+T.A <- pmin(T.j1.a1*(A == 1) + T.j1.a0*(A == 0),
+            T.j2.a1*(A == 1) + T.j2.a0*(A == 0))
+T.tilde <- pmin(T.A, C)
+Delta <- as.numeric(T.A <= C)
+counterfactuals <- data.table(T.j1.a0 = T.j1.a0, T.j1.a1 = T.j1.a1,
+                              T.j2.a0 = T.j2.a0, T.j2.a1 = T.j2.a1,
+                              L1 = L1, L2 = L2, L3 = L3)
+observed <- data.table(T.tilde = T.tilde, Delta = Delta,
+                       A = A, L1 = L1, L2 = L2, L3 = L3)
+attr(observed, "EventTime") <- "T.tilde"
+attr(observed, "EventType") <- "Delta"
+attr(observed, "Treatment") <- "A"
 #+END_SRC
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
@@ -167,6 +167,7 @@ where $\lambda_c(t \AX)$ is the hazard of the censoring process and $\lambda_j(t
 
 ** What the package should do in the future but does not yet
   
+- missing values in the covariates
 - multi-categorical treatment variables
 - ATT
 - treatment dose
