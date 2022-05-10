@@ -1,4 +1,5 @@
-try(setwd("~/research/SoftWare/devel-tmle-survival/ConCR-TMLE-Paper/supplement/"),silent=TRUE)
+try(setwd("~/research/SoftWare/devel-tmle-survival/ConCR-TMLE-Paper/supplement/"), silent = TRUE)
+try(setwd("Shared/Projects/ConCR-TMLE-Paper/supplement"), silent = TRUE)
 # ---------------------------------------------------------------------
 # packages
 # ---------------------------------------------------------------------

@@ -44,14 +44,25 @@ An abstract of less than 150 words.
 }
 #+end_export
 
-* Introduction
+\section{Introduction}
+- tmle and semiparametric efficient estimation
+- continuous-time tmle for survival
+- purpose and structure of the package and this paper
 
-* Data Structure
+To illustrate the function of this package, we will consider a running example of TBD  dataset.
 
-Consider a survival analysis on an interval $[0,\,t_{max}]$ with competing risks. Let \(T^a_j\) denote counterfactual time-to-event variables for event $j$ and intervention $a$, for competing events $j \in \mathcal{J} = \{1, 2, \dots, J\}$ and an intervention $a \in \mathcal{A}$. Our counterfactual data structure can then be denoted by
-\[(T^a_j,\;\X\,:\;a\in\mathcal{A},\;j\in\mathcal{J})\]
-where $\X \in \mathbb{R}^d$ is a \(d\)-dimensional vector of baseline covariates. For a single time-point binary intervention, as in many randomized control trials, $\mathcal{A} = \{0, 1\}$ and the corresponding counterfactual data is 
-\[ (T^1_j,\; T^0_j,\;\X\,: \;j\in\mathcal{J})\]
+\section{What do I need to know before using the package?}
+\subsection{Causal Inference for right-censored time-to-event outcomes (recommended)}
+\subsubsection{Counterfactual data from the ideal hypothetical experiment}
+In cases when we are concerned with the effect of an intervention on the time it takes for some event(s) to happen, a typical hypothetical experiment might take the form:
+ - Give everyone the intervention, observe them for some length of time without exception (e.g. no drop-outs and no loss-to-follow-up), and see who experiences the event(s) and when.
+ - Give the same people a placebo, observe them for the same length of time without exception, and see who experiences the event(s) and when.
+The mathematical notation for such data might be described as
+\[ X = (T^a_j, L : T^a_j \leq t_{max},  a \in \{0, 1\}, j \in \{1, ..., J\}) \]
+where \(W\) is some collection of baseline covariates, \(t_{max}\) is the desired follow-up time, and \(T^a_j\) are the counterfactual times until event $j$ occurs if people are given the treatment $a$.
+In this paper we will consider the simple example of a two-armed experiment (1 = treatment, 0 = placebo) following subjects who could experience one of 2 mutually exclusive events (e.g. 1 = cardiovascular death and 2 = other-cause mortality). This data could then be represented as
+\[ X = (T^0_1, T^1_1, T^0_2, T^1_2, L)\]
+Below we show a simulated example of such a dataset:
 
 #+name: data
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
@@ -90,10 +101,24 @@ attr(observed, "EventType") <- "Delta"
 attr(observed, "Treatment") <- "A"
 #+END_SRC
 
+#+RESULTS: data
+
+
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw drawer  :exports code :session *R* :cache yes
 head(counterfactuals)
 #+END_SRC
+
+#+RESULTS[(2022-04-29 13:15:51) aae83953960a2be418eb240e660d836441f56f41]:
+:results:
+     T.j1.a0   T.j1.a1   T.j2.a0   T.j2.a1         L1 L2        L3
+1: 0.1599887 0.4906215 0.5399409 0.5803671 -1.7677221  4 3.0093952
+2: 1.1369533 1.9210028 0.2375033 0.9133089 -0.4916921  0 0.3294865
+3: 0.3447736 1.2538906 0.4779721 0.8540658  0.3214659  3 4.1630246
+4: 4.6631762 0.3718961 1.5650534 0.2485393  1.4606608  3 1.5313713
+5: 0.1430018 0.5951058 0.3003895 0.9765322  1.5372426  2 1.5580743
+6: 1.8419819 3.9131870 1.8517334 3.0117075 -0.3395685  4 0.8455748
+:end:
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw drawer  :exports results :session *R* :cache yes
@@ -112,6 +137,25 @@ Publish::org(head(counterfactuals))
 | 6 | 1.8419819 | 3.9131870 | 1.8517334 | 3.0117075 | -0.3395685 |  4 | 0.8455748 |
 :end:
 
+\subsubsection{Causal Parameter for competing events}
+Given this data, we might be interested in comparing the risk of experiencing event 1 by some time $t$ if everyone were given the intervention \(\mathbb{E}(T^1_1)\) versus the risk of experiencing event 1 by the same time $t$ if everyone were given the placebo \(\mathbb{E}(T^0_1)\). Typically this comparison might be a risk difference \(\mathbb{E}(T^1_1) - \mathbb{E}(T^0_1)\), or a risk ratio \(\mathbb{E}(T^1_1) / \mathbb{E}(T^0_1)\).
+If however subjects are susceptible to more than a single event, solely focusing on the effect of a treatment on one event can be misleading. In our example, an intervention might decrease the risk of CV death because it improves subjects cardiovascular health, or it might decrease the risk of CV death by causing subjects to die of other causes before cardiovascular disease. The ability to distinguish between these mechanisms of effect is clearly important, and so in competing risks settings we should track the effect of treatment on the set of possible events, \(\left(\mathbb{E}(T^1_1) - \mathbb{E}(T^0_1)\,,\;\mathbb{E}(T^1_2) - \mathbb{E}(T^0_2)\right)\)
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output raw drawer  :exports both :session *R* :cache yes
+with(counterfactuals, c(mean(T.j1.a1) - mean(T.j1.a0), mean(T.j2.a1) - mean(T.j2.a0)))
+#+END_SRC
+
+#+RESULTS[(2022-04-29 13:04:12) 66051e314826ddfb6e962a4f2c46fbd6505a2ae1]:
+:results:
+[1] -0.4772590  0.1348499
+:end:
+
+
+\subsubsection{Causal Identification}
+Causal parameters unambiguously define the number(s) we want to know, but do so in terms of hypothetical data we cannot ever actually observe.
+
+\section{Estimation of survival estimands}
+\subsection{Right-Censored Survival Data with Competing Events}
 Let $O$ denote the corresponding coarsened observed data where $O \sim P_0$. The observed data would include the time-to-censoring $C$, and observed intervention $A$. The time to first event (censoring or otherwise) we denote as $\T = \min(C,\; T_j\,: \; j \in \mathcal{J})$ with $\Delta = (\argmin\limits_j T_j) \times \1(\min\limits_j T_j \leq C)$ marking which outcome is observed ($\Delta = 0$ being that censoring occurred). The observable right-censored survival data with competing events can then be represented as 
 \[O = (\T,\;\Delta,\;A,\;\X)\]
 
@@ -156,8 +200,17 @@ where $\lambda_c(t \AX)$ is the hazard of the censoring process and $\lambda_j(t
     &= \int_{0}^{t} \exp\bigg(-\int_{0}^{s} \sum_{j=1}^{J} \lambda_j(u \ax)\,du\bigg) \lambda_j(s \ax)\,ds.
 \end{align*}
 
-*  What do I need to know before using the package?
-** What the package does not do
+\subsection{Statistical Estimand}
+
+\subsection{Estimation}
+\subsubsection{Tools from parametric regression and machine learning}
+
+Users should understand and be familiar with at least one regression method for estimating the propensity score, and at least one regression method for estimating hazard functions, .e.g. at least one of {logistic regression and Cox regression} or {tree based regression for binary intervention and survival analysis}.
+
+What if a model does not converge?
+
+\section{What to expect from the package}
+\subsection{What the package does not do}
 
 - drop-in  (see drop-in JICI project)
 - mediation analysis (see CALM)
@@ -165,27 +218,24 @@ where $\lambda_c(t \AX)$ is the hazard of the censoring process and $\lambda_j(t
 - left truncation AKA delayed entry
 - paired or clustered data
 
-** What the package should do in the future but does not yet
+\subsection{What the package may do in the future but does not yet}
   
 - missing values in the covariates
 - multi-categorical treatment variables
 - ATT
-- treatment dose
 - longitudinal covariates
-- cross-validated TMLE
-- collaborative TMLE
-- bounded or rare outcome TMLE
-- HAL-TMLE    
+- TMLE extensions (cross-validated, collaborative, bounded, HAL-TMLE, etc.)
+
+
+\section{how does this package work}
   
 ** What is estimated?
-
 A risk difference or risk ratio with our without competing risks for a point treatment.
 
 TMLE is about estimating target parameters which are defined in terms
 of counterfactual outcomes. Most likely you should define the target
 trial that you would like to do in a perfect world but can only
 estimate it from a non-randomized data set.
-
 
 Suppose your target parameter is the causal effect of a treatment,
 then you should consider the usual identification assumptions of
@@ -215,14 +265,6 @@ such as the cause-specific absolute risks, the components of the data
 distribution that must be estimated are $\g(A \mid \X)$, $S_c(t \AX)$,
 $\lambda_j(t \AX)$, $F_j(t \AX)$, and $S(t \AX)$
 
-** Tools from parametric regression and machine learning
-
-At least one of {logistic regression and Cox regression} or {tree based
-regression for binary outcome and survival analysis}.
-
-What if a model does not converge?
-
-
 * Estimation
 ** Cross-Validation Specification
 Let $Q_n = \{O_i\}_{i=1}^n$ be an observed sample of $n$ i.i.d observations of $O \sim P_0$. For $V\text{-fold}$ cross validation, let $B_n = \{1, ... , V\}^n$ be a random vector that assigns the $n$ observations into $V$ validation folds. For each $v \in \{1, ..., V\}$ we then define training set $Q^\mathcal{T}_v = \{O_i : B_n(i) = v\}$ with the corresponding validation set $Q^\mathcal{V}_v = \{O_i : B_n(i) \neq v\}$.
@@ -234,8 +276,13 @@ StrataIDs <- factor(paste(observed[["A"]], observed[["Delta"]]))
 CVFolds <- origami::make_folds(n = observed,
                                fold_fun = origami::folds_vfold,
                                strata_ids = StrataIDs)
+names(CVFolds[[1]])
 #+END_SRC
 
+#+RESULTS[(2022-04-29 13:20:28) ed089fd5dd652f6a5c7ba1be214629caa735e8c7]:
+:results:
+[1] "v"              "training_set"   "validation_set"
+:end:
 
 ** Propensity Score Estimation
 For the true conditional distribution of $A$ given $\X$, $\g_0(\cdot \mid \X)$, and $\Hat{\g} : Q_n \to \Hat{\g}(Q_n)$, let $L_\g$ be a loss function such that the risk $\mathbb{E}_0\left[L_\g(\Hat{\g}, O)\right]$ is minimized when $\Hat{\g} = \g_0$. For instance, with a binary $A$, we may specify the negative log loss $L_\g(\Hat{\g}, O) = \text{-}\log\left(\Hat{\g}(1 \mid \X)^A \; \Hat{\g}(0 \mid \X))^{1-A}\right)$. We can then define the discrete superlearner selector which chooses from a set of candidate models $\mathcal{M_\g}$ the candidate propensity score model that has minimal cross validated risk 
@@ -244,35 +291,49 @@ For the true conditional distribution of $A$ given $\X$, $\g_0(\cdot \mid \X)$, 
 This discrete superlearner model \(\Hat{\g}^{SL}\) is then fitted on the full observed data \(Q_n\) and used to estimate \(\g_0(A \mid \X)\)
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw  :exports both  :session *R* :cache yes
-CovDataTable <- observed[, -c("T.tilde", "Delta", "A")]
-Model <- list("Trt" = sl3::make_learner(sl3:::Lrnr_glm))
-Intervention <- list(
-  "A=1" = list("intervention" = function(a, L) rep_len(1, length(a)),
-               "g.star" = function(a, L) {as.numeric(a == 1)}),
-  "A=0" = list("intervention" = function(a, L) rep_len(0, length(a)),
-               "g.star" = function(a, L) {as.numeric(a == 0)})
-)
+#+BEGIN_SRC R  :results output raw drawer :exports code  :session *R* :cache yes
+  CovDataTable <- observed[, -c("T.tilde", "Delta", "A")]
+  TrtModel <- list("Trt" = sl3::make_learner(sl3:::Lrnr_glm))
+  Intervention <- list(
+    "A=1" = list("intervention" = function(a, L) rep_len(1, length(a)),
+		 "g.star" = function(a, L) {as.numeric(a == 1)}),
+    "A=0" = list("intervention" = function(a, L) rep_len(0, length(a)),
+		 "g.star" = function(a, L) {as.numeric(a == 0)})
+  )
 
-Regime <- getRegime(Intervention = Intervention,
-                    Treatment = observed[["A"]],
-                    CovDataTable = CovDataTable)
+  Regime <- getRegime(Intervention = Intervention,
+		      Treatment = observed[["A"]],
+		      CovDataTable = CovDataTable)
 
-PropScores <- getPropScore(Treatment = observed[["A"]],
-                           CovDataTable = CovDataTable,
-                           Model = Model,
-                           MinNuisance = 0.05,
-                           Regime = Regime,
-                           PropScoreBackend = "sl3",
-                           CVFolds = CVFolds)
-TrtFit <- PropScores[["TrtFit"]]
-PropScores <- PropScores[["PropScores"]]
+  PropScores <- getPropScore(Treatment = observed[["A"]],
+			     CovDataTable = CovDataTable,
+			     TrtModel = TrtModel,
+			     MinNuisance = 0.05,
+			     Regime = Regime,
+			     PropScoreBackend = "sl3",
+			     CVFolds = CVFolds)
+  data.frame("P(0|L)" = PropScores[["A=0"]],
+       "P(1|L)" = PropScores[["A=1"]])
 #+END_SRC
 
+#+RESULTS[(2022-04-29 13:20:29) 10c219b197540cc38424696725233df476e666c4]:
+
+#+name: propscores
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw drawer  :exports results :session *R* :cache yes
-Publish::org(skimr::skim(PropScores))
+#+BEGIN_SRC R  :results output raw  :exports results  :session *R* :cache no  :eval always
+Publish::org(head(data.frame("P(0|L)" = PropScores[["A=0"]],
+     "P(1|L)" = PropScores[["A=1"]])))
 #+END_SRC
+
+#+RESULTS: propscores
+|   |            P.0.L. |            P.1.L. |
+|---+-------------------+-------------------|
+| 1 | 0.633629974239524 | 0.366370025760476 |
+| 2 | 0.528763579033402 | 0.471236420966598 |
+| 3 | 0.627447234013916 | 0.372552765986084 |
+| 4 | 0.642322242462545 | 0.357677757537455 |
+| 5 | 0.573242941805181 | 0.426757058194819 |
+| 6 | 0.639858329447988 | 0.360141670552012 |
 
 ** Hazard Estimation
 Let \(\lambda_{0,\,\delta}\) be the true censoring and cause-specific hazards when \(\delta = 0\) and \(\delta = 1, \dots, J\) respectively. Let \(\mathcal{M}_\delta\) for \(\delta = 0, \dots, J\) be the sets of candidate models, $\{\Hat{\lambda}_\delta : Q_n \to \Hat{\lambda}_\delta(Q_n)\}$, for the censoring and cause-specific hazards and let $L_\delta$ be loss functions such that the risks $\mathbb{E}_0\left[L_\delta(\Hat{\lambda}_\delta, O)\right]$ are minimized when $\Hat{\lambda}_\delta = \lambda_{0,\,\delta}$, for instance log likelihood loss. We can then define the discrete superlearner selectors for each \(\delta\) which choose from the set of candidate models $\mathcal{M_\delta}$ the candidate propensity score model that has minimal cross validated risk 
@@ -284,7 +345,8 @@ These discrete superlearner selections \(\Hat{\lambda}_\delta^{SL}\) are then fi
 #+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes
 EventTime <- observed$`T.tilde`
 TargetTime <- mean(EventTime)
-Model <- list("0" = list(mod1 = Surv(T.tilde, Delta == 0) ~ A + L1 + L2),
+Model <- list("Trt" = TrtModel,
+              "0" = list(mod1 = Surv(T.tilde, Delta == 0) ~ A + L1 + L2),
               "1" = list(mod1 = Surv(T.tilde, Delta == 1) ~ A + L1 + L2*L3))
 TargetEvent <- 1:2
 MinNuisance <- 0.05
@@ -295,10 +357,10 @@ HazTimes <- HazTimes[HazTimes <= max(TargetTime)]
 Hazards <- data.table("Time" = c(0, HazTimes))
 
 HazFits <- getHazFit(Data = observed,
-                     EventTime = EventTime,
                      Model = Model,
                      CVFolds = CVFolds,
-                     Hazards = Hazards)
+                     Hazards = Hazards,
+                     HazEstBackend = "coxph")
 HazSurvPreds <- getHazSurvPred(Data = observed,
                                HazFits = HazFits,
                                MinNuisance = MinNuiscance,
@@ -307,6 +369,7 @@ HazSurvPreds <- getHazSurvPred(Data = observed,
                                Regime = Regime,
                                Censored = Censored)
 #+END_SRC
+
 
 *** Lagged Censoring Survival
 Let \(\mathcal{S}\) be the set containing all target and observed event times, ordered such that \(s_1 < s_2 < \dots s_{max}\). Then for all \(s_{\tK} \,\in\, \mathcal{S}\) we compute
@@ -335,9 +398,7 @@ For \(\lj = 1,\dots, J\) and \(s \,\in\, \mathcal{S}\), the stored cause-specifi
 \Hat S_c(s\text{-} \AX)}} \, \bigg(\1(\Delta = \jj) - \frac{{\color{red}\Hat F_\jj(\tk \AX)} - {\color{red}\Hat F_\jj(s \AX)}}{{\color{red}\Hat S(s \AX)}}\bigg)
 \end{align*}
 
-The clever covariate is a function of the @@latex:{\color{blue}@@desired intervention density@@latex:}@@, the @@latex:{\color{green!70!black}@@ observed intervention densities@@latex:}@@, and the @@latex:{\color{red}@@non-intervention outcome densities@@latex:}@@.
-
-1 clever covariate value for every individual, for every regime of interest, for every target event, for every target time, at every time \(s \,\in\, \mathcal{S}\).
+The clever covariate is a function of the @@latex:{\color{blue}@@desired intervention density@@latex:}@@ which is user specified, the @@latex:{\color{green!70!black}@@ observed intervention densities@@latex:}@@ which are not changed by tmle targeting, and the @@latex:{\color{red}@@non-intervention outcome densities@@latex:}@@ which are updated by targeting.  
 
 ** Estimating the EIC
 \begin{align*}
@@ -346,9 +407,28 @@ The clever covariate is a function of the @@latex:{\color{blue}@@desired interve
     &\hspace{5mm}{\color{blue!60!black}+ \sum_{a\,\in\,\mathcal{A}} F_\jj(\tk \mid A = a, \X)\,\trt(a \mid \X) - \Psi_{\trt, \jj, \tk}(P_0)}
 \end{align*}
 
-The sum over time and sum over events are done per individual. The addition of the absolute risk and subtraction of the target estimand are done later, outside of the loop over individuals.
-
-1 EIC estimate for every individual, every regime of interest, every target event, and every target time.
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes
+Estimates <- getInitialEstimate(Data = observed,
+                                CovDataTable = CovDataTable,
+                                Model = Model,
+                                CVFolds = CVFolds,
+                                MinNuisance = MinNuisance,
+                                TargetEvent = TargetEvent,
+                                TargetTime = TargetTime,
+                                Regime = Regime,
+                                PropScoreBackend = "sl3",
+                                HazEstBackend = "coxph",
+                                Censored = Censored)
+EIC <- getEIC(Estimates = Estimates,
+       Data = observed,
+       Regime = Regime,
+       Censored = Censored,
+       TargetEvent = TargetEvent,
+       TargetTime = TargetTime,
+       Events = Events,
+       MinNuisance = MinNuisance)
+#+END_SRC
 
 * TMLE one-step update
 Let \(D^*\) be the vector of efficient influence functions
@@ -358,11 +438,34 @@ D^{*}(\lambda, \g, S_c)(O) &= \left(D^*_{\trt, \jj, \tk}(\lambda, \g, S_c)(O) : 
 h_{j, s}(\lambda, \g, S_c)(O) &= \left(h_{\trt, \jj, \lj, \tk, s}(\lambda, \g, S_c)(O) : \trt \in \mathcal{A}, \jj \in \mathcal{J}, \tk \in \TK)\right)
 \end{align*}
 The one-step TMLE involves updating the cause-specific hazards along the universal least favorable submodel. This is implemented by updating the hazards in small steps along the sequence of locally-least favorable submodels in the following manner:
-\[ \Hat \lambda_{j, \epsilon^d}(t) = \Hat\lambda^{SL}_{j}(t) \, \exp\left(\sum_{i = 1}^{d}\frac{\left<\mathbb{P}_n D^*(\Hat \lambda_{\epsilon^i}, \Hat \g, \Hat S_c)(O),\; h_{j, s}(\Hat \lambda_{\epsilon^i}, \Hat \g, \Hat S_c)(O) \right>_{\Sigma}}{|| D^*(\Hat \lambda_{\epsilon^i}, \Hat \g, \Hat S_c)(O)||_{\Sigma}} \; \epsilon \right)\]
+
+
+\[ \Hat \lambda_{j, \epsilon_m}(t) = \Hat\lambda^{SL}_{j}(t) \, \exp\left(\sum_{i = 1}^{m}\frac{\left<\mathbb{P}_n D^*(\Hat \lambda_{\epsilon_i}, \Hat \g, \Hat S_c)(O),\; h_{j, s}(\Hat \lambda_{\epsilon_i}, \Hat \g, \Hat S_c)(O) \right>_{\Sigma}}{|| D^*(\Hat \lambda_{\epsilon_i}, \Hat \g, \Hat S_c)(O)||_{\Sigma}} \; \epsilon_i \right)\]
 where
 \[ \left<x, y\right>_{\Sigma} = x^\top \Sigma^{\text{ -}1} y \hspace{.5cm}, \hspace{.5cm} ||x||_{\Sigma} = \sqrt{x^\top \Sigma^{\text{ -}1} x} \]
 
-The default value of $\epsilon$ in the software is 0.1, and the algorithm stops at $\epsilon^i$ when
-\[\mathbb{P}_n D^*(\Hat \lambda_{\epsilon^i}, \Hat \g, \Hat S_c)(O) \leq \frac{\sqrt{\mathbb{P}_n \left[D^*(\Hat \lambda_{\epsilon^i}, \Hat \g, \Hat S_c)(O)^2\right]}}{\sqrt{n} \, \log(n)}\]
+The default value of $\epsilon$ in the software is 0.1, and the algorithm stops at $\epsilon_i$ when
+\[\mathbb{P}_n D^*(\Hat \lambda_{\epsilon_i}, \Hat \g, \Hat S_c)(O) \leq \frac{\sqrt{\mathbb{P}_n \;D^*(\Hat \lambda_{\epsilon_i}, \Hat \g, \Hat S_c)(O)^2}}{\sqrt{n} \, \log(n)}\]
 
 
+\definecolor{db}{HTML}{001965}
+\definecolor{mb}{HTML}{6675A2}
+\definecolor{lb}{HTML}{BCBFD7}
+\definecolor{lg}{HTML}{40bda6}
+\begin{align*}
+\color{db}
+{\color{lb}\Hat P_{n}} &\mathbin{{\color{db}=}} \text{ \color{lb}initial distribution estimate}\\
+{\color{mb}\Hat P^*_{n}} &\mathbin{{\color{db}=}} \text{ \color{mb}targeted distribution estimate}\\
+{\color{db} P_{0}} &\mathbin{{\color{db}=}} \text{ \color{db}true distribution}\\[3mm]
+\color{db}\Psi({\color{lb}\Hat P_{n}}) &\mathbin{{\color{db}=}} \text{ \color{lb}parameter of estimated distribution}\\
+\color{db}\Psi({\color{mb}\Hat P^*_{n}}) &\mathbin{{\color{db}=}} \text{ \color{mb}parameter of targeted distribution}\\
+\color{db}\Psi({\color{db} P_{0}}) &\mathbin{{\color{db}=}} \text{ \color{db}parameter of true distribution}
+\end{align*}
+
+\color{db} \hspace*{-7mm} *TMLE in a nutshell:* \vspace{2mm}\\
+\color{lb} 1. Estimate the data distribution \vspace{1mm}\\
+\color{mb} 2. Update the estimated distribution to maximize\\
+\hspace*{4.5mm}information used to estimate the target estimand\vspace{1mm}\\
+\color{db} 3. Apply the parameter mapping to the updated distribution\\
+
+\[\color{db} \mathcal{M} :\; \text{\color{db} model space} \]
