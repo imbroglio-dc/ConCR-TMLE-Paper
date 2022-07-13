@@ -45,14 +45,60 @@ An abstract of less than 150 words.
 #+end_export
 
 \section{Introduction}
-- tmle and semiparametric efficient estimation
-- continuous-time tmle for survival
-- purpose and structure of the package and this paper
+Continuous-time estimation of survival curve-derived estimands on right-censored time-to-event data
 
-To illustrate the function of this package, we will consider a running example of TBD  dataset.
+1. Introduction
+  - What this package does (will do)
+    - baseline covariate adjustment
+    - treatment and event-specific absolute risks of right-censored, competing time-to-events
+    - g-computation (Cox), tmle, (iptw?)
+    - binary(multinomial/continuous) treatment variable(s)
+    - static and dynamic (stochastic) interventions
+    - (longitudinal data structure?)
+    - (imputation of missing covariates?)
+    
+  - What this package will not do
+    - drop-in  (see drop-in JICI project)
+    - mediation analysis (see CALM)
+    - interval censored data
+    - left truncation AKA delayed entry
+    - paired or clustered data
+
+2. Important Concepts
+   1. Causal question drives the analysis
+      - Composite Event vs. Censoring vs. Competing Risks
+      - Identification 
+   2. continuous-time TMLE (high level overview)
+   3. survival-curve derived estimands
+   
+3. Important software/applied skills
+   1. sl3 or SuperLearner
+   2. Regression package for estimating propensity scores for a binary(/multinomial/continuous) treatment variable
+      - glm, glmnet, bayeglm
+      - ranger, randomforest, xgboost, bart, earth
+      - polymars, nnet, ...
+   3. Cox regression for estimating conditional hazard functions
+      - cox-hal / poisson-hal
+
+4. Troubleshooting
+   - What if a model does not converge?
+
+
+To illustrate the function of this package, we will consider a running example of ...  dataset.
 
 \section{What do I need to know before using the package?}
-\subsection{Causal Inference for right-censored time-to-event outcomes (recommended)}
+1. observed data for right-censored, time-to-event outcomes, with competing risks
+2. 
+1. Causal inference for right-censored time-to-event outcomes (with competing risks)
+   1. Counterfactual data from a hypothetical experiment
+   2. Causal estimands
+2. Identifying Causal Estimands with Statistical Estimands
+   1. Observed Data
+   2. Statistical Estimands
+   3. Statistical Model
+3. Estimation
+   1. Continuous-time TMLE for right-censored 
+\subsection{Causal Inference for right-censored time-to-event outcomes}
 \subsubsection{Counterfactual data from the ideal hypothetical experiment}
 In cases when we are concerned with the effect of an intervention on the time it takes for some event(s) to happen, a typical hypothetical experiment might take the form:
  - Give everyone the intervention, observe them for some length of time without exception (e.g. no drop-outs and no loss-to-follow-up), and see who experiences the event(s) and when.
@@ -204,28 +250,6 @@ where $\lambda_c(t \AX)$ is the hazard of the censoring process and $\lambda_j(t
 
 \subsection{Estimation}
 \subsubsection{Tools from parametric regression and machine learning}
-
-Users should understand and be familiar with at least one regression method for estimating the propensity score, and at least one regression method for estimating hazard functions, .e.g. at least one of {logistic regression and Cox regression} or {tree based regression for binary intervention and survival analysis}.
-
-What if a model does not converge?
-
-\section{What to expect from the package}
-\subsection{What the package does not do}
-
-- drop-in  (see drop-in JICI project)
-- mediation analysis (see CALM)
-- interval censored data
-- left truncation AKA delayed entry
-- paired or clustered data
-
-\subsection{What the package may do in the future but does not yet}
-  
-- missing values in the covariates
-- multi-categorical treatment variables
-- ATT
-- longitudinal covariates
-- TMLE extensions (cross-validated, collaborative, bounded, HAL-TMLE, etc.)
-
 
 \section{how does this package work}
   
