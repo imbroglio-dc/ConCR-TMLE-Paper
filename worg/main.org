@@ -315,7 +315,7 @@ For the true conditional distribution of $A$ given $\X$, $\g_0(\cdot \mid \X)$, 
 This discrete superlearner model \(\Hat{\g}^{SL}\) is then fitted on the full observed data \(Q_n\) and used to estimate \(\g_0(A \mid \X)\)
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw drawer :exports code  :session *R* :cache yes
+#+BEGIN_SRC R  :results output raw drawer :exports code  :session *R* :cache no
   CovDataTable <- observed[, -c("T.tilde", "Delta", "A")]
   TrtModel <- list("Trt" = sl3::make_learner(sl3:::Lrnr_glm))
   Intervention <- list(
@@ -336,15 +336,13 @@ This discrete superlearner model \(\Hat{\g}^{SL}\) is then fitted on the full ob
 			     Regime = Regime,
 			     PropScoreBackend = "sl3",
 			     CVFolds = CVFolds)
-  data.frame("P(0|L)" = PropScores[["A=0"]],
-       "P(1|L)" = PropScores[["A=1"]])
 #+END_SRC
 
 #+RESULTS[(2022-04-29 13:20:29) 10c219b197540cc38424696725233df476e666c4]:
 
 #+name: propscores
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw  :exports results  :session *R* :cache no  :eval always
+#+BEGIN_SRC R  :results output raw  :exports results  :session *R* :cache yes  :eval always
 Publish::org(head(data.frame("P(0|L)" = PropScores[["A=0"]],
      "P(1|L)" = PropScores[["A=1"]])))
 #+END_SRC
