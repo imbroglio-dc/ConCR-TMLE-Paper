@@ -49,6 +49,7 @@ Recently targeted maximum likelihood-based estimation (TMLE) has been used to de
 }
 #+end_export
 
+\tableofcontents
 
 \chapter{Introduction}
 We are often interested in the causal effect of interventions on the time until some outcome, often called a failure event, occurs. For instance the PBC (primary biliary cholangitis) data set resulted from the Mayo Clinic's randomized controlled trial aimed at determining if D-penicillamine was better than placebo at delaying the death of patients with PBC. In this trial, as in many time-to-event studies, the failure event (i.e. death) was not observed for many patients either because the study had ended or because they had dropped out of contact while they were still alive. The occurence of such events, which obscure the observation of the event of interest and which researchers would have ideally prevented, is common in time-to-event data and is referred to as right-censoring. On the other hand, other patients received a liver transplant during the study, which saved them from dying from PBC; This however was an outcome that researchers might not have wanted to prevent; after all, it could be important to know if D-penicillamine affects when or how patients received transplants. In cases like this when mutually exclusive outcomes are jointly of interest to researchers, we have the case of competing events. With complex survival data, just formulating clear causal questions can be a serious undertaking. Fortunately, the formal causal frameworks developed in recent decades, such as the Neyman-Rubin language of counterfactuals, help us to define unambiguous causal questions and to determine what observed data is needed to answer them. We will demonstrate this process of causal identification in section 2.1.
@@ -289,26 +290,26 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
 #+name: concreteargs covdatatable code
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache no  
-head(ConcreteArgs[["Data"]])
+head(ConcreteArgs$Data)
 #+END_SRC
 
 #+name: head concreteArgs data
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw drawer  :exports results  :session *R* :cache no  :eval always
-Publish::org(head(ConcreteArgs[["Data"]]))
+Publish::org(head(ConcreteArgs$Data))
 #+END_SRC
 
 The original columns (and categorical values when applicable) can be linked to the new columns through the returned "Data" element's "CovNames" attribute: "ColName" lists the columns in the renamed data table, "CovName" lists the names of the original columns, and "CovVal" lists the values of the original columns for the case when categorical values are spread over several new columns.   
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache no  
-attr(ConcreteArgs[["Data"]], "CovNames")
+attr(ConcreteArgs$Data, "CovNames")
 #+END_SRC
 
 #+name: concreteargs data covnames
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw  :exports results  :session *R* :cache no  :eval always
-Publish::org(attr(ConcreteArgs[["Data"]], "CovNames"))
+Publish::org(attr(ConcreteArgs$Data, "CovNames"))
 #+END_SRC
 
 The "Data" element also includes additional attributes: the `EventTime`, `EventType`, `Treatment`, `ID`, and `RenameCovs` arguments are all attached to the `Data` data table as attributes named respectively, e.g. attr(\*, "EventTime").
@@ -474,7 +475,7 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
 ConcreteArgs <- formatArguments(ConcreteArgs)
 #+END_SRC
 
-\subsection{doConcrete}
+\section{doConcrete}
 Once `formatArguments()` runs without errors, the resulting object of class `ConcreteArgs` should be a suitable input into the function `doConcrete()` which should return the desired targeted estimates without any further user interaction. The resulting object contains TMLE point estimates and influence curves for the cause-specific absolute risks for each targeted event at each targeted time. If `GComp` is true, then the object will also contain the g-computation plug-in estimates for the targeted risks.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
@@ -482,7 +483,7 @@ Once `formatArguments()` runs without errors, the resulting object of class `Con
 ConcreteEst <- doConcrete(ConcreteArgs)
 #+END_SRC
 
-\subsection{getOutput}
+\section{getOutput}
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
 ConcreteOut <- getOutput(ConcreteEst)
@@ -494,19 +495,48 @@ ggplot(data = concrete.rd, aes(x = as.factor(Time), y = RD, colour = Estimator, 
 #+END_SRC
 
 \chapter{Full Code Examples}
-\section{ITT Survival}
+\section{ITT Right-Censored Survival with SuperLearner}
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
 devtools::load_all(".")
 set.seed(12345)
 data <- as.data.table(survival::pbc)
-data <- data[!is.na(trt), trt := trt - 1]
+data <- data[!is.na(trt), ][, trt := trt - 1]
 data[, status := as.numeric(status >= 1)]
 data <- data[, c("time", "status", "trt", "age", "sex")]
 
 ConcreteArgs <- formatArguments(DataTable = data,
                                 EventTime = "time", EventType = "status",
-                                Treatment = "trt", )
+                                Treatment = "trt",
+                                Intervention = makeITT())
+ConcreteEst <- doConcrete(ConcreteArgs)
+
+ConcreteOut <- getOutput(ConcreteEst, "RD")$RD
+
+library(ggplot2)
+ggplot(data = ConcreteOut, aes(x = as.factor(Time), y = RD, colour = Estimator, group = Estimator)) + facet_wrap(~Event, nrow = 2) + 
+  geom_errorbar(aes(ymin = RD - 1.96*se, ymax = RD + 1.96*se), width = 0.8, position = position_dodge(width=0.3)) +
+  geom_point(size = 2, position = position_dodge(width=0.3)) + theme_minimal()
+#+END_SRC
+
+\section{ITT Competing Risks with sl3}
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
+devtools::load_all(".")
+set.seed(12345)
+data <- as.data.table(survival::pbc)
+data <- data[!is.na(trt), ][, trt := trt - 1]
+data <- data[, c("time", "status", "trt", "age", "sex")]
+
+ConcreteArgs <- formatArguments(DataTable = data,
+                                EventTime = "time", EventType = "status",
+                                Treatment = "trt",
+                                Intervention = c(0, 1),
+                                PropScoreBackend = "sl3")
+library(sl3)
+ConcreteArgs[["Model"]][["trt"]] <- Stack$new(Lrnr_glmnet$new(), Lrnr_xgboost$new())
+ConcreteArgs <- formatArguments(ConcreteArgs)
+
 ConcreteEst <- doConcrete(ConcreteArgs)
 
 ConcreteOut <- getOutput(ConcreteEst, "RD")$RD
@@ -530,14 +560,14 @@ The intervention function takes as inputs a vector of observed treatment assignm
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache no  
-ITT[["A=1"]]$intervention
+ITT$`A=1`$intervention
 #+END_SRC
 
 The 'g.star' function takes as inputs a vector of treatment assignments and data.table of covariates, and outputs a vector of desired treatment probabilities for the provided vector of treatment assignments. In "A=1", the desired intervention is to assign everyone to treatment (i.e. trt = 1) with 100% probability and to control with 0% probability and the corresponding g.star function reflects this, returning 1 if the treatment assignment is 1 and 0 if the treatment assignment is 0.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache no  
-ITT[["A=1"]]$g.star
+ITT$`A=1`$g.star
 #+END_SRC
 
 
@@ -545,7 +575,7 @@ For "A=0" the intervention function returns a vector of 0s and the treatment ass
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache no  
-ITT[["A=0"]]
+ITT$`A=0`
 #+END_SRC
 
 \section{Estimating Propensity Score using SuperLearner}
@@ -663,8 +693,8 @@ PropScores <- getPropScore(TrtVal = observed[["A"]], CovDT = CovDataTable, TrtMo
 #+name: propscores
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw  :exports results  :session *R* :cache yes  :eval always
-tmp <- head(data.table("P(0|L)" = signif(PropScores[["A=0"]], 3),
-                       "P(1|L)" = signif(PropScores[["A=1"]], 3)))
+tmp <- head(data.table("P(0|L)" = signif(PropScores$`A=0`, 3),
+                       "P(1|L)" = signif(PropScores$`A=1`, 3)))
 suppressWarnings(Publish::org(tmp))
 #+END_SRC
 
