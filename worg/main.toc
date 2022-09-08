@@ -1,0 +1,32 @@
+\contentsline {chapter}{\numberline {1}Introduction}{3}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Concepts}{6}{chapter.2}%
+\contentsline {section}{\numberline {2.1}The Causal Model: Counterfactuals, Interventions, and Causal Estimands}{6}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Observed Data}{7}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Identification}{8}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Statistical Estimands}{10}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Estimation}{10}{section.2.5}%
+\contentsline {chapter}{\numberline {3}Using concrete}{11}{chapter.3}%
+\contentsline {section}{\numberline {3.1}formatArguments()}{11}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Data}{11}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}Target Estimand}{13}{subsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.2.1}Treatment Regime}{13}{subsubsection.3.1.2.1}%
+\contentsline {subsubsection}{\numberline {3.1.2.2}Target Events}{13}{subsubsection.3.1.2.2}%
+\contentsline {subsubsection}{\numberline {3.1.2.3}Target Time}{13}{subsubsection.3.1.2.3}%
+\contentsline {subsection}{\numberline {3.1.3}Estimator Specification}{14}{subsection.3.1.3}%
+\contentsline {subsubsection}{\numberline {3.1.3.1}Cross-Validation}{14}{subsubsection.3.1.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.3.2}Estimators for Nuisance Parameters}{15}{subsubsection.3.1.3.2}%
+\contentsline {paragraph}{\numberline {3.1.3.2.1}Estimating Treatment Propensity}{15}{paragraph.3.1.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.1.3.3}Estimating Event and Censoring Hazards}{16}{subsubsection.3.1.3.3}%
+\contentsline {subsection}{\numberline {3.1.4}TMLE Specification}{16}{subsection.3.1.4}%
+\contentsline {subsection}{\numberline {3.1.5}Miscellaneous Arguments}{17}{subsection.3.1.5}%
+\contentsline {subsection}{\numberline {3.1.6}ConcreteArgs object}{17}{subsection.3.1.6}%
+\contentsline {section}{\numberline {3.2}doConcrete}{18}{section.3.2}%
+\contentsline {section}{\numberline {3.3}getOutput}{18}{section.3.3}%
+\contentsline {chapter}{\numberline {4}Full Code Examples}{19}{chapter.4}%
+\contentsline {section}{\numberline {4.1}ITT Right-Censored Survival with SuperLearner}{19}{section.4.1}%
+\contentsline {section}{\numberline {4.2}ITT Competing Risks with sl3}{19}{section.4.2}%
+\contentsline {chapter}{\numberline {5}Appendix 1: Specific Code Examples}{21}{chapter.5}%
+\contentsline {section}{\numberline {5.1}makeITT}{21}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Estimating Propensity Score using SuperLearner}{21}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Estimating Propensity Scores using sl3}{22}{section.5.3}%
+\contentsline {chapter}{\numberline {6}Appendix 2: How doConcrete Performs Continuous-time TMLE}{23}{chapter.6}%
