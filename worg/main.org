@@ -1,47 +1,3 @@
-#+TITLE: concrete R Paper
-#+Author: David Chen, Thomas Gerds, Helene Rytgaard, Maya Petersen, Mark van der Laan (additional authors TBD)
-#+Date: 
-#+EMAIL: 
-#+LANGUAGE:  en
-#+OPTIONS: H:3 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
-#+OPTIONS: TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc author:nil
-#+LaTeX_CLASS: Rnews-article
-#+LaTeX_HEADER:\usepackage[utf8]{inputenc}
-#+LaTeX_HEADER:\usepackage{xcolor}
-#+LaTeX_HEADER:\usepackage[T1]{fontenc}
-#+LaTeX_HEADER:\usepackage{amsmath,amssymb,array}
-#+LaTeX_HEADER:\usepackage{booktabs}
-#+LaTeX_HEADER:\usepackage{natbib}
-#+LaTeX_HEADER:\usepackage{listings}
-#+LaTeX_HEADER:\usepackage{hyperref}
-#+LaTeX_HEADER:\hypersetup{colorlinks=true, linkcolor=blue, filecolor=magenta, urlcolor=cyan, pdftitle={Overleaf Example}, pdfpagemode=FullScreen}
-#+LaTeX_HEADER:\newcommand{\J}{\ensuremath{J}}
-#+LaTeX_HEADER:\newcommand{\1}{\ensuremath{\mathbf{1}}}
-#+LaTeX_HEADER:\DeclareMathOperator*{\argmax}{argmax}
-#+LaTeX_HEADER:\DeclareMathOperator*{\argmin}{argmin}
-#+LaTeX_HEADER:\newcommand{\h}{\ensuremath{\lambda}}
-#+LaTeX_HEADER:\newcommand{\indep}{\ensuremath{\perp\hspace*{-1.4ex}\perp}}
-#+LaTeX_HEADER:\newcommand{\T}{\ensuremath{\widetilde{T}}}
-#+LaTeX_HEADER:\newcommand{\X}{\ensuremath{{W}}}
-#+LaTeX_HEADER:\renewcommand{\t}{\ensuremath{\Tilde{t}}}
-#+LaTeX_HEADER:\newcommand{\ax}{\ensuremath{\mid a,\,{w}}}
-#+LaTeX_HEADER:\newcommand{\aX}{\ensuremath{\mid A = a,\,{W}}}
-#+LaTeX_HEADER:\newcommand{\AX}{\ensuremath{\mid A,\,{W}}}
-#+LaTeX_HEADER:\newcommand{\x}{\ensuremath{{w}}}
-#+LaTeX_HEADER:\newcommand{\trt}{\ensuremath{\pi^*}}
-#+LaTeX_HEADER:\newcommand{\tk}{\ensuremath{\tau}}
-#+LaTeX_HEADER:\newcommand{\lj}{\ensuremath{l}}
-#+LaTeX_HEADER:\newcommand{\jj}{\ensuremath{j}}
-#+LaTeX_HEADER:\newcommand{\tK}{\ensuremath{K}}
-#+LaTeX_HEADER:\newcommand{\tKi}{\ensuremath{k}}
-#+LaTeX_HEADER:\newcommand{\TK}{\ensuremath{\mathcal{T}}}
-#+LaTeX_HEADER:\newcommand{\g}{\ensuremath{\pi}}
-#+LaTeX_HEADER:\setcounter{secnumdepth}{4}
-#+LaTeX_HEADER:\renewcommand{\L}{\ensuremath{W}}
-#+LaTeX_HEADER:\renewcommand{\l}{\ensuremath{w}}
-#+setupfile:~/emacs-genome/snps/org-templates/setup-all-purpose.org
-#+superman-export-target: pdf
-
 #+begin_export latex
 \abstract{
 Recently targeted maximum likelihood-based estimation (TMLE) has been used to develop estimators of survival curve derived parameters for time-to-event data. The single timepoint continuous-time survival TMLE method is implemented in the `concrete` package for `R`. `concrete` provides methods to estimate intervention and cause-specific absolute risks as well as contrastive parameters such as risk differences and risk ratios. The package allows the risks of multiple causes to be jointly targeted in the case of competing risks, at multiple time points and in the presence of right-censoring. In this paper we describe and illustrate the usage of the `concrete` package.
@@ -51,15 +7,38 @@ Recently targeted maximum likelihood-based estimation (TMLE) has been used to de
 \tableofcontents
 
 * Introduction
+:PROPERTIES:
+:CUSTOM_ID: intro
+:END:
 
 # what it is about
 
-The \CRANpkg{concrete} answers causal questions with time to event
-outcomes in continous time. It implements the TMLE method developed in cite:
+The R package \CRANpkg{concrete} answers causal questions with time to
+event outcomes in continous time. It implements the TMLE method
+developed in cite:rytgaard2021one to estimate time-point specific
+average treatment effects and returns absolute t-year risks as well as
+differences and ratios of absolute t-year risks. Asymptotic inference
+is based on the efficient influence curve.
+
+# what is in this manuscript
+
+We refer to readers who want a hands-on introduction to TMLE for
+survival analysis as well as to readers who want to use our package
+for their own project.
+
 
 # what it is not about
+The package can be used for static and dynamic binary treatments given
+at baseline. It deals with right censoring and competing risks.  The
+package cannot (not yet) analyse time-dependent treatments, multiple
+treatments, continuous or multinomial treatments.
+
+
 
 # how it relates to other peoples work
+
+Related packages are ... 
+
 
 We are often interested in the causal effect of interventions on the time until some outcome, often called a failure event, occurs. For instance the PBC (primary biliary cholangitis) data set resulted from the Mayo Clinic's randomized controlled trial aimed at determining if D-penicillamine was better than placebo at delaying the death of patients with PBC. In this trial, as in many time-to-event studies, the failure event (i.e. death) was not observed for many patients either because the study had ended or because they had dropped out of contact while they were still alive. The occurence of such events, which obscure the observation of the event of interest and which researchers would have ideally prevented, is common in time-to-event data and is referred to as right-censoring. On the other hand, other patients received a liver transplant during the study, which saved them from dying from PBC; This however was an outcome that researchers might not have wanted to prevent; after all, it could be important to know if D-penicillamine affects when or how patients received transplants. In cases like this when mutually exclusive outcomes are jointly of interest to researchers, we have the case of competing events. With complex survival data, just formulating clear causal questions can be a serious undertaking. Fortunately, the formal causal frameworks developed in recent decades, such as the Neyman-Rubin language of counterfactuals, help us to define unambiguous causal questions and to determine what observed data is needed to answer them. We will demonstrate this process of causal identification in section 2.1.
 
@@ -123,7 +102,7 @@ To illustrate the function of this package, we will consider a running example o
 6. Appendix 1: niche examples
 7. Appendsix 2: How concrete does continuous-time TMLE
 
-\chapter{Concepts}
+* Concepts
 #+name: data
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw drawer  :exports none  :session *R* :cache no  :eval always
@@ -169,7 +148,7 @@ attr(observed, "Treatment") <- "A"
 
 
 
-\section{The Causal Model: Counterfactuals, Interventions, and Causal Estimands}
+** {The Causal Model: Counterfactuals, Interventions, and Causal Estimands}
 With time-to-event data, the essential counterfactual outcome is the time until some event or events occur to some subjects if they were intervened upon in some way. Let $A$ represent this intervention variable, which could be binary, such as with a 2-armed trial, multinomial, or even continuous. Interventions on this variable can take on different forms; the simplest is just setting the variable to a constant value $a$ in the range of $A$, a so-called a static regime. Alternatively the intervention could be a function $d$, maybe specifying a dynamic regime with a deterministic function that incorporates some baseline covariates $\L$, $d(\L)$, or even specifying stochastic regime with a probabilistic function that could depend on the treatment variable, $d(A, \L). If we let $d$ define a desired intervention, then for $J$ events of interest we can define the counterfactual time-to-event variables $T^d_j \,,\; j = 1, ..., J$, representing the time until event $j$ happens if subjects were intervened upon following rule $d$. With this we can write the generic form of time-to-event counterfactual data with $J$ target events, baseline covariates $L$ and intervention rule $d$ determining the value of intervention variable $A$.
 \[ X = \left( T^d_j, \L \,:\; j \in 1, \dots, J \right)\]
 
@@ -183,7 +162,7 @@ where $\L$ is some collection of baseline covariates, \(t_{max}\) is the desired
 
 Counterfactual notation also allows us to mathematically define causal estimands such as causal risk differences and causal risk ratios. For instance in the PBC example, the absolute risk of death by time $t$ in the presence of liver transplants given treatment with d-Penicillamine is $\mathbf{E}(T^1_1 \leq t)$. A more typical, complete estimand might be the joint risk differences for both death and liver transplant, $\left(\mathbf{E}_X(T^1_1 \leq t) - \mathbf{E}_X(T^0_1 \leq t), \mathbf{E}_X(T^1_2 \leq t) - \mathbf{E}_X(T^0_2 \leq t)\right)$. 
 
-\section{Observed Data}
+** {Observed Data}
 In time-to-event data, subjects are followed over time until some event occurs, a process that is often subject to censoring. Let $O$ denote one such observation where $O$ is drawn from a distribution $P_0$. This data includes the treatment variable $A$ and potentially a vector of baseline covariates which we denote as $\L$. The observed time to first event (censoring or otherwise) we denote as $\T = \min(C,\; T_j :\, j = 1, \dots, J)$, where $C$ is the censoring time and $T_j$ are the event times to each of the events $j$. To identify which event is observed we define $\Delta = (\argmin\limits_j T_j) \times \1(\min\limits_j T_j \leq C)$, with $\Delta = 0$ being that censoring occurred. The observed survival data, potentially with right censoring and competing events, can then be represented as 
 \[O = (\T,\;\Delta,\;A,\;\L)\]
 
@@ -193,7 +172,7 @@ Here the single time-point intervention variable $A$ and baseline covariate vect
 \[ O = N_1(t), N_2(t), N_c(t), A, \L \,:\; t \leq T \]
 This formulation allows 
 
-\section{Identification}
+** {Identification}
 In order to identify causal estimands such as absolute risk ratios and differences with functions of the observed data, some untestable structural assumptions must hold - namely the assumptions of consistency, positivity, randomization, and coarsening at random on the conditional density of the censoring mechanism. 
 
 1. The consistency assumption states that the observed outcome given a certain treatment decision is equal to the corresponding counterfactual outcome
@@ -255,7 +234,15 @@ TBD
 
 * Using concrete
 
-There are 3 main functions in concrete: formatArguments(), doConcrete, getOutput. Reflecting our vision of good statistical practice, the majority of user interaction is put into defining the desired analysis using formatArguments(). The user specifies the data structure, desired interventions, and choices regarding estimation. formatArguments() checks these inputs and will return errors and warnings if the specified analysis runs into any red flags. doConcrete runs continuous-time one-step survival TMLE and returns a fitted object. getOutput prints, summarizes, and plots.  
+There are 3 main functions in concrete: formatArguments(), doConcrete,
+getOutput. Reflecting our vision of good statistical practice, the
+majority of user interaction is put into defining the desired analysis
+using formatArguments(). The user specifies the data structure,
+desired interventions, and choices regarding
+estimation. formatArguments() checks these inputs and will return
+errors and warnings if the specified analysis runs into any red
+flags. doConcrete runs continuous-time one-step survival TMLE and
+returns a fitted object. getOutput prints, summarizes, and plots.
 
 ** formatArguments()
 formatArguments() is how the user specifies the estimation problem which consists of the major features of the observed data structure, the target quantities, and estimation choices.
@@ -493,7 +480,7 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
 ConcreteArgs <- formatArguments(ConcreteArgs)
 #+END_SRC
 
-\section{doConcrete}
+** {doConcrete}
 Once `formatArguments()` runs without errors, the resulting object of class `ConcreteArgs` should be a suitable input into the function `doConcrete()` which should return the desired targeted estimates without any further user interaction. The resulting object contains TMLE point estimates and influence curves for the cause-specific absolute risks for each targeted event at each targeted time. If `GComp` is true, then the object will also contain the g-computation plug-in estimates for the targeted risks.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
@@ -501,7 +488,7 @@ Once `formatArguments()` runs without errors, the resulting object of class `Con
 ConcreteEst <- doConcrete(ConcreteArgs)
 #+END_SRC
 
-\section{getOutput}
+** {getOutput}
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
 ConcreteOut <- getOutput(ConcreteEst)
@@ -512,8 +499,8 @@ ggplot(data = concrete.rd, aes(x = as.factor(Time), y = RD, colour = Estimator, 
   geom_point(size = 2, position = position_dodge(width=0.3)) + theme_minimal()
 #+END_SRC
 
-\chapter{Full Code Examples}
-\section{ITT Right-Censored Survival with SuperLearner}
+* Full Code Examples
+** {ITT Right-Censored Survival with SuperLearner}
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
 devtools::load_all(".")
@@ -537,7 +524,7 @@ ggplot(data = ConcreteOut, aes(x = as.factor(Time), y = RD, colour = Estimator, 
   geom_point(size = 2, position = position_dodge(width=0.3)) + theme_minimal()
 #+END_SRC
 
-\section{ITT Competing Risks with sl3}
+** {ITT Competing Risks with sl3}
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
 devtools::load_all(".")
@@ -565,8 +552,8 @@ ggplot(data = ConcreteOut, aes(x = as.factor(Time), y = RD, colour = Estimator, 
   geom_point(size = 2, position = position_dodge(width=0.3)) + theme_minimal()
 #+END_SRC
 
-\chapter{Appendix 1: Specific Code Examples}
-\section{makeITT}
+* Appendix 1: Specific Code Examples
+** {makeITT}
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache no  
@@ -596,7 +583,7 @@ For "A=0" the intervention function returns a vector of 0s and the treatment ass
 ITT$`A=0`
 #+END_SRC
 
-\section{Estimating Propensity Score using SuperLearner}
+** {Estimating Propensity Score using SuperLearner}
 
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
@@ -620,7 +607,7 @@ TargetEvent = 1:2, TargetTime = (3:7)*500,
                                 PropScoreBackend = "SuperLearner")
 #+END_SRC
 
-\section{Estimating Propensity Scores using sl3}
+** {Estimating Propensity Scores using sl3}
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
@@ -640,7 +627,7 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
                                 PropScoreBackend = "sl3")
 #+END_SRC
 
-\chapter{Appendix 2: How doConcrete Performs Continuous-time TMLE}
+* Appendix 2: How doConcrete Performs Continuous-time TMLE
 Suppose your target parameter is the causal effect of a treatment,
 then you should consider the usual identification assumptions of
 \begin{enumerate}
@@ -826,3 +813,52 @@ where
 
 The default value of $\epsilon$ in the software is 0.1, and the algorithm stops at $\epsilon_i$ when
 \[\mathbb{P}_n D^*(\Hat \lambda_{\epsilon_i}, \Hat \g, \Hat S_c)(O) \leq \frac{\sqrt{\mathbb{P}_n \;D^*(\Hat \lambda_{\epsilon_i}, \Hat \g, \Hat S_c)(O)^2}}{\sqrt{n} \, \log(n)}\]
+
+bibliography:main.bib
+
+
+* Config                                                           :noexport:
+** latex
+#+LANGUAGE:  en
+#+OPTIONS:   H:3 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS:   TeX:t LaTeX:t skip:nil d:t todo:t pri:nil tags:not-in-toc author:t
+#+LaTeX_CLASS: Rnews-article
+#+BIND: org-export-allow-bind-keywords t
+#+BIND: org-latex-title-command ""
+#+PROPERTY: session *R*
+#+PROPERTY: cache yes
+#+LaTeX_HEADER:\usepackage{RJournal}
+#+LaTeX_HEADER:\usepackage{blindtext}
+#+LaTeX_HEADER:\usepackage[utf8]{inputenc}
+#+LaTeX_HEADER:\usepackage{xcolor}
+#+LaTeX_HEADER:\usepackage[T1]{fontenc}
+#+LaTeX_HEADER:\usepackage{amsmath,amssymb,array}
+#+LaTeX_HEADER:\usepackage{booktabs}
+#+LaTeX_HEADER:\usepackage{natbib}
+#+LaTeX_HEADER:\usepackage{listings}
+#+LaTeX_HEADER:\usepackage{hyperref}
+#+LaTeX_HEADER:\hypersetup{colorlinks=true, linkcolor=blue, filecolor=magenta, urlcolor=cyan, pdftitle={Overleaf Example}, pdfpagemode=FullScreen}
+#+LaTeX_HEADER:\newcommand{\J}{\ensuremath{J}}
+#+LaTeX_HEADER:\newcommand{\1}{\ensuremath{\mathbf{1}}}
+#+LaTeX_HEADER:\DeclareMathOperator*{\argmax}{argmax}
+#+LaTeX_HEADER:\DeclareMathOperator*{\argmin}{argmin}
+#+LaTeX_HEADER:\newcommand{\h}{\ensuremath{\lambda}}
+#+LaTeX_HEADER:\newcommand{\indep}{\ensuremath{\perp\hspace*{-1.4ex}\perp}}
+#+LaTeX_HEADER:\newcommand{\T}{\ensuremath{\widetilde{T}}}
+#+LaTeX_HEADER:\newcommand{\X}{\ensuremath{{W}}}
+#+LaTeX_HEADER:\renewcommand{\t}{\ensuremath{\Tilde{t}}}
+#+LaTeX_HEADER:\newcommand{\ax}{\ensuremath{\mid a,\,{w}}}
+#+LaTeX_HEADER:\newcommand{\aX}{\ensuremath{\mid A = a,\,{W}}}
+#+LaTeX_HEADER:\newcommand{\AX}{\ensuremath{\mid A,\,{W}}}
+#+LaTeX_HEADER:\newcommand{\x}{\ensuremath{{w}}}
+#+LaTeX_HEADER:\newcommand{\trt}{\ensuremath{\pi^*}}
+#+LaTeX_HEADER:\newcommand{\tk}{\ensuremath{\tau}}
+#+LaTeX_HEADER:\newcommand{\lj}{\ensuremath{l}}
+#+LaTeX_HEADER:\newcommand{\jj}{\ensuremath{j}}
+#+LaTeX_HEADER:\newcommand{\tK}{\ensuremath{K}}
+#+LaTeX_HEADER:\newcommand{\tKi}{\ensuremath{k}}
+#+LaTeX_HEADER:\newcommand{\TK}{\ensuremath{\mathcal{T}}}
+#+LaTeX_HEADER:\newcommand{\g}{\ensuremath{\pi}}
+#+LaTeX_HEADER:\setcounter{secnumdepth}{4}
+#+LaTeX_HEADER:\renewcommand{\L}{\ensuremath{W}}
+#+LaTeX_HEADER:\renewcommand{\l}{\ensuremath{w}}

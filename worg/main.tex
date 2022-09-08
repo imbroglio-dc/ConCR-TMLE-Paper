@@ -1,7 +1,9 @@
-% Created 2022-09-08 Thu 01:50
+% Created 2022-09-08 Thu 21:07
 % Intended LaTeX compiler: pdflatex
 \documentclass{report}
-                              \usepackage[utf8]{inputenc}
+                              \usepackage{RJournal}
+\usepackage{blindtext}
+\usepackage[utf8]{inputenc}
 \usepackage{xcolor}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb,array}
@@ -34,11 +36,6 @@
 \setcounter{secnumdepth}{4}
 \renewcommand{\L}{\ensuremath{W}}
 \renewcommand{\l}{\ensuremath{w}}
-\RequirePackage{tcolorbox}
-\definecolor{lightGray}{gray}{0.98}
-\definecolor{medioGray}{gray}{0.83}
-\definecolor{mygray}{rgb}{.95, 0.95, 0.95}
-\newcommand{\mybox}[1]{\vspace{.5em}\begin{tcolorbox}[boxrule=0pt,colback=mygray] #1 \end{tcolorbox}}
 
 \lstset{
 keywordstyle=\color{blue},
@@ -63,19 +60,23 @@ basewidth={0.5em,0.4em},
 }
 \renewcommand*\familydefault{\sfdefault}
 \itemsep2pt
-\author{David Chen, Thomas Gerds, Helene Rytgaard, Maya Petersen, Mark van der Laan (additional authors TBD)}
-\date{}
-\title{concrete R Paper}
+\author{Thomas Alexander Gerds}
+\date{\today}
+\title{}
 \begin{document}
 
-\maketitle
 \abstract{
 Recently targeted maximum likelihood-based estimation (TMLE) has been used to develop estimators of survival curve derived parameters for time-to-event data. The single timepoint continuous-time survival TMLE method is implemented in the `concrete` package for `R`. `concrete` provides methods to estimate intervention and cause-specific absolute risks as well as contrastive parameters such as risk differences and risk ratios. The package allows the risks of multiple causes to be jointly targeted in the case of competing risks, at multiple time points and in the presence of right-censoring. In this paper we describe and illustrate the usage of the `concrete` package.
 }
 
 \tableofcontents
 
-\chapter{Introduction}
+\section{Introduction}
+\label{intro}
+The R package \CRANpkg{concrete} answers causal questions with time to
+event outcomes in continous time. It implements the TMLE method
+developed in \cite{rytgaard2021one}. Section \ref{intro}
+
 We are often interested in the causal effect of interventions on the time until some outcome, often called a failure event, occurs. For instance the PBC (primary biliary cholangitis) data set resulted from the Mayo Clinic's randomized controlled trial aimed at determining if D-penicillamine was better than placebo at delaying the death of patients with PBC. In this trial, as in many time-to-event studies, the failure event (i.e. death) was not observed for many patients either because the study had ended or because they had dropped out of contact while they were still alive. The occurence of such events, which obscure the observation of the event of interest and which researchers would have ideally prevented, is common in time-to-event data and is referred to as right-censoring. On the other hand, other patients received a liver transplant during the study, which saved them from dying from PBC; This however was an outcome that researchers might not have wanted to prevent; after all, it could be important to know if D-penicillamine affects when or how patients received transplants. In cases like this when mutually exclusive outcomes are jointly of interest to researchers, we have the case of competing events. With complex survival data, just formulating clear causal questions can be a serious undertaking. Fortunately, the formal causal frameworks developed in recent decades, such as the Neyman-Rubin language of counterfactuals, help us to define unambiguous causal questions and to determine what observed data is needed to answer them. We will demonstrate this process of causal identification in section 2.1.
 
 Of course the task is not finished after causal identification; an estimate must be computed and its uncertainty quantified. When precision and reliability are desired, the choice of appropriate estimators becomes important. The standard unadjusted Kaplan-Meier and Aalen-Johansen estimators are simple and reliable if censoring happens independently of failure events but are inefficient as they do not utilize covariate information and are susceptible to bias when the independence assumption is violated. Alternatively, parametric estimators such as the ubiquitous Cox model perform well but if real process lies within the parametric model; however, this is rarely a known fact in real world data. Instead, we might turn to semi-parametric efficient estimators such as TMLE.
@@ -162,7 +163,8 @@ To illustrate the function of this package, we will consider a running example o
 \item Appendsix 2: How concrete does continuous-time TMLE
 \end{enumerate}
 
-\chapter{Concepts}
+\section{Concepts}
+\label{sec:org04419a4}
 \section{The Causal Model: Counterfactuals, Interventions, and Causal Estimands}
 With time-to-event data, the essential counterfactual outcome is the time until some event or events occur to some subjects if they were intervened upon in some way. Let \(A\) represent this intervention variable, which could be binary, such as with a 2-armed trial, multinomial, or even continuous. Interventions on this variable can take on different forms; the simplest is just setting the variable to a constant value \(a\) in the range of \(A\), a so-called a static regime. Alternatively the intervention could be a function \(d\), maybe specifying a dynamic regime with a deterministic function that incorporates some baseline covariates \(\L\), \(d(\L)\), or even specifying stochastic regime with a probabilistic function that could depend on the treatment variable, \$d(A, \L). If we let \(d\) define a desired intervention, then for \(J\) events of interest we can define the counterfactual time-to-event variables \(T^d_j \,,\; j = 1, ..., J\), representing the time until event \(j\) happens if subjects were intervened upon following rule \(d\). With this we can write the generic form of time-to-event counterfactual data with \(J\) target events, baseline covariates \(L\) and intervention rule \(d\) determining the value of intervention variable \(A\).
 \[ X = \left( T^d_j, \L \,:\; j \in 1, \dots, J \right)\]
@@ -249,17 +251,23 @@ Where the hazard of \(T\) given \(A\) and \(W\), \(\lambda(s \mid W,\, A)\), is 
 \(P(T_{a} \leq t, J=j) = E{W} \int_{s \leq t} \lambda_{j}(s \mid W, A=a) \prod_{\tau \leq s} (1-\lambda(\tau \mid W,\, A=a))\) 
 Again, as mentioned above, these cause specific hazards \(j\) are themselves expressed in terms of conditional probabilities of \(N_{j}(t), j=1, 2\).
 
-\section{Statistical Estimands}
+\subsection{Statistical Estimands}
+\label{sec:org96512b9}
+
 Given this data, we might be interested in comparing the risk of experiencing event 1 by some time \(t\) if everyone were given the intervention \(\mathbb{E}(T^1_1)\) versus the risk of experiencing event 1 by the same time \(t\) if everyone were given the placebo \(\mathbb{E}(T^0_1)\). Typically this comparison might be a risk difference \(\mathbb{E}(T^1_1) - \mathbb{E}(T^0_1)\), or a risk ratio \(\mathbb{E}(T^1_1) / \mathbb{E}(T^0_1)\).
 If however subjects are susceptible to more than a single event, solely focusing on the effect of a treatment on one event can be misleading. In our example, an intervention might decrease the risk of CV death because it improves subjects cardiovascular health, or it might decrease the risk of CV death by causing subjects to die of other causes before cardiovascular disease. The ability to distinguish between these mechanisms of effect is clearly important, and so in competing risks settings we should track the effect of treatment on the set of possible events, \(\left(\mathbb{E}(T^1_1) - \mathbb{E}(T^0_1)\,,\;\mathbb{E}(T^1_2) - \mathbb{E}(T^0_2)\right)\)
 
-\section{Estimation}
+\subsection{Estimation}
+\label{sec:org72d852d}
 TBD
 
-\chapter{Using concrete}
+\section{Using concrete}
+\label{sec:org0dfa218}
+
 There are 3 main functions in concrete: formatArguments(), doConcrete, getOutput. Reflecting our vision of good statistical practice, the majority of user interaction is put into defining the desired analysis using formatArguments(). The user specifies the data structure, desired interventions, and choices regarding estimation. formatArguments() checks these inputs and will return errors and warnings if the specified analysis runs into any red flags. doConcrete runs continuous-time one-step survival TMLE and returns a fitted object. getOutput prints, summarizes, and plots.  
 
-\section{formatArguments()}
+\subsection{formatArguments()}
+\label{sec:org37d6f66}
 formatArguments() is how the user specifies the estimation problem which consists of the major features of the observed data structure, the target quantities, and estimation choices.
 
 \subsection{Data}
@@ -281,8 +289,17 @@ obs[, stage := as.factor(stage)]
 head(obs, 5)
 \end{lstlisting}
 
-Error: object 'obs' not found
-Error in head(obs, 5) : object 'obs' not found
+\begin{center}
+\begin{tabular}{rrrrrrlr}
+time & status & trt & id & age & albumin & sex & stage\\
+\hline
+400 & 2 & 1 & 1 & 58.8 & 2.60 & f & 4\\
+4500 & 0 & 1 & 2 & 56.4 & 4.14 & f & 3\\
+1012 & 2 & 1 & 3 & 70.1 & 3.48 & m & 4\\
+1925 & 2 & 1 & 4 & 54.7 & 2.54 & f & 4\\
+1504 & 1 & 2 & 5 & 38.1 & 3.53 & f & 3\\
+\end{tabular}
+\end{center}
 
 The data set is passed into `concrete` through the `formatArguments()` `DataTable` argument as a data table or data frame. It must contain columns specifying 1) the observed event or censoring times, 2) the event type (where a value of 0 indicates censoring), and 3) the treatment. The event/censoring times must be positive numbers and the name of that column is specified by the `EventTime` argument. The event/censoring type must be non-negative integers (with 0 indicating censoring) and that column name is specified by the `EventType` argument. The treatment must currently be binary numeric (0 or 1) and that column name is specified by the `Treatment` argument. Additionally the `DataTable` may include columns containing 1) uniquely identifying subject ids and 2) any number of additional columns containing baseline covariates.
 
@@ -299,7 +316,18 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
 head(ConcreteArgs$Data)
 \end{lstlisting}
 
-Error in head(ConcreteArgs\$Data) : object 'ConcreteArgs' not found
+\begin{center}
+\begin{tabular}{rrrrrrrrrr}
+id & time & status & trt & L1 & L2 & L3 & L4 & L5 & L6\\
+\hline
+1 & 400 & 2 & 1 & 58.8 & 2.6 & 1 & 0 & 0 & 1\\
+2 & 4500 & 0 & 1 & 56.4 & 4.14 & 1 & 0 & 1 & 0\\
+3 & 1012 & 2 & 1 & 70.1 & 3.48 & 0 & 0 & 0 & 1\\
+4 & 1925 & 2 & 1 & 54.7 & 2.54 & 1 & 0 & 0 & 1\\
+5 & 1504 & 1 & 2 & 38.1 & 3.53 & 1 & 0 & 1 & 0\\
+6 & 2503 & 2 & 2 & 66.3 & 3.98 & 1 & 0 & 1 & 0\\
+\end{tabular}
+\end{center}
 
 The original columns (and categorical values when applicable) can be linked to the new columns through the returned "Data" element's "CovNames" attribute: "ColName" lists the columns in the renamed data table, "CovName" lists the names of the original columns, and "CovVal" lists the values of the original columns for the case when categorical values are spread over several new columns.   
 
@@ -308,19 +336,33 @@ The original columns (and categorical values when applicable) can be linked to t
 attr(ConcreteArgs$Data, "CovNames")
 \end{lstlisting}
 
-Error in publish(x, \ldots{}, org = TRUE) : object 'ConcreteArgs' not found
+\begin{center}
+\begin{tabular}{lll}
+ColName & CovName & CovVal\\
+\hline
+L1 & age & .\\
+L2 & albumin & .\\
+L3 & sex & f\\
+L4 & stage & 2\\
+L5 & stage & 3\\
+L6 & stage & 4\\
+\end{tabular}
+\end{center}
 
 The "Data" element also includes additional attributes: the `EventTime`, `EventType`, `Treatment`, `ID`, and `RenameCovs` arguments are all attached to the `Data` data table as attributes named respectively, e.g. attr($\backslash$*, "EventTime").
 
 \subsection{Target Estimand}
+\label{sec:org3f59c69}
 `concrete` targets absolute risks and/or survival probabilities at specific target times for specific events under specific treatment regimes. 
 
 \subsubsection{Treatment Regime}
+\label{sec:orgaa507a1}
 As discussed in the previous section, interventions may take the form of stochastic, dynamic, or static regimes. Desired interventions are passed into `concrete` with the `Intervention` argument. For static treatment regimes the interventions can be specified as numeric vector containing the desired global regimes, e.g. "0", "1", or "c(0,1)". Dynamic and stochastic regimes are specified by a pair of functions: an 'intervention' function which outputs desired treatment \textbf{assignments} and a 'g.star' function which outputs desired treatment \textbf{probabilities}. Functionality for specifying `g.star` functions based on estimated propensity scores for stochastic interventions will be added in the future.
 
 Though the static regimes for a 2-armed trial can be simply specified as mentioned above, the functions corresponding to assigning everyone the treatment (i.e. trt = 1) and assigning everyone to a control (i.e. trt = 0) can be created using `makeITT()`. The result of `makeITT()` is a list of two desired counterfactual interventions: "A=1" details an the intervention where everyone is assigned treatment, and "A=0" details an intervention where everyone is assigned control. This is meant to be a template for users to explore more complex dynamic regimes.
 
 \subsubsection{Target Events}
+\label{sec:org2ed8b2c}
 The `TargetEvent` argument is used to specify which events are of interest, events which must be encoded as non-negative integers. In the `pbc` dataset for example, there are 3 possible values of "status": 0 for censored, 1 for transplant, and 2 for death. In `concrete` 0 is similarly reserved to indicate the presence of censoring, while failure events can be encoded as any positive integer. Setting `TargetEvent` to "c(1, 2)" targets the risk of transplant and death jointly in this dataset. By default `concrete` by targets all observed non-censoring events, so leaving the `TargetEvent` argument as NULL would achieve the same result.
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
@@ -331,6 +373,7 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
 \end{lstlisting}
 
 \subsubsection{Target Time}
+\label{sec:org54b4808}
 The `TargetTime` argument specifies the time(s) at which estimates of the event-specific absolute risks and/or event-free survival are desired. Target times should be restricted to the time range in which failure events are observed, since estimating event risks after the point in time where all individuals are censored entails unsupported extrapolation. To discourage this behaviour, formatArguments() will return an error if target time is after the last observed failure event time. If no TargetTime is probided, then `concrete` will target the last observed event time, though this is likely to result in a highly variable estimate if prior censoring is substantial.
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
@@ -341,7 +384,8 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
                                 Intervention = ITT, TargetEvent = 1:2, TargetTime = BadTime)
 \end{lstlisting}
 
-Error in loadNamespace(x) : there is no package called ‘concrete’
+Error in concrete:::getTargetTime(TargetTime = unique(obs[status > 0,  : 
+  TargetTime must not target times after which all individuals are Censored, 4191
 
 The `TargetTime` argument can either be a single number or a vector, as one-step TMLE can target cause-specific risks at multiple times simultaneously.
 
@@ -353,9 +397,11 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
 \end{lstlisting}
 
 \subsection{Estimator Specification}
+\label{sec:orgb43ffe4}
 The arguments involved in estimation are the cross-validation setup `CVArg`, the estimation models `Model`, the software backends `PropScoreBackend` and `HazEstBackend`, `MaxUpdateIter`, `OneStepEps`, and `MinNuisance`. It should be noted here that `Model` is used here to conform with common usage in statistical analysis packages, rather than to refer to a statistical or causal model as we have used it in the previous sections. 
 
 \subsubsection{Cross-Validation}
+\label{sec:org4e42745}
 
 `concrete` uses `origami` to specify cross-validation folds, specifically the function `origami::make\textsubscript{folds}()`. If no input is provided to the `formatArguments(CVArg= )` argument, concrete will use origami to implement a simple 10-fold cross-validation scheme. For how to specify more sophisticated cross-validation schemes, see \href{https://tlverse.org/origami/articles/generalizedCV.html}{this brief vignette} or \href{https://tlverse.org/tlverse-handbook/origami.html}{detailed chapter on using origami from the tlverse handbook}
 
@@ -473,7 +519,8 @@ ggplot(data = concrete.rd, aes(x = as.factor(Time), y = RD, colour = Estimator, 
   geom_point(size = 2, position = position_dodge(width=0.3)) + theme_minimal()
 \end{lstlisting}
 
-\chapter{Full Code Examples}
+\section{Full Code Examples}
+\label{sec:orgf1980ac}
 \section{ITT Right-Censored Survival with SuperLearner}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
 \begin{lstlisting}
@@ -526,7 +573,8 @@ ggplot(data = ConcreteOut, aes(x = as.factor(Time), y = RD, colour = Estimator, 
   geom_point(size = 2, position = position_dodge(width=0.3)) + theme_minimal()
 \end{lstlisting}
 
-\chapter{Appendix 1: Specific Code Examples}
+\section{Appendix 1: Specific Code Examples}
+\label{sec:org21696a5}
 \section{makeITT}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
@@ -601,7 +649,8 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
                                 PropScoreBackend = "sl3")
 \end{lstlisting}
 
-\chapter{Appendix 2: How doConcrete Performs Continuous-time TMLE}
+\section{Appendix 2: How doConcrete Performs Continuous-time TMLE}
+\label{sec:org9921258}
 Suppose your target parameter is the causal effect of a treatment,
 then you should consider the usual identification assumptions of
 \begin{enumerate}
@@ -630,14 +679,14 @@ such as the cause-specific absolute risks, the components of the data
 distribution that must be estimated are \(\g(A \mid \X)\), \(S_c(t \AX)\),
 \(\lambda_j(t \AX)\), \(F_j(t \AX)\), and \(S(t \AX)\)
 
-\section*{Estimation}
-\label{sec:org30d0c9a}
-\subsection*{Cross-Validation Specification}
-\label{sec:org121c2fc}
+\section{Estimation}
+\label{sec:orgcf4c61f}
+\subsection{Cross-Validation Specification}
+\label{sec:orgd1056e1}
 Let \(Q_n = \{O_i\}_{i=1}^n\) be an observed sample of \(n\) i.i.d observations of \(O \sim P_0\). For \(V\text{-fold}\) cross validation, let \(B_n = \{1, ... , V\}^n\) be a random vector that assigns the \(n\) observations into \(V\) validation folds. For each \(v \in \{1, ..., V\}\) we then define training set \(Q^\mathcal{T}_v = \{O_i : B_n(i) = v\}\) with the corresponding validation set \(Q^\mathcal{V}_v = \{O_i : B_n(i) \neq v\}\).
 
-\subsubsection*{V-Fold Cross-Validation}
-\label{sec:orgc7b4ae2}
+\subsubsection{V-Fold Cross-Validation}
+\label{sec:org2e7fadf}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
 \begin{lstlisting}
 library(origami)
@@ -647,8 +696,8 @@ names(CVFolds[[1]])
 
 
 
-\subsection*{Propensity Score Estimation}
-\label{sec:org6c148b9}
+\subsection{Propensity Score Estimation}
+\label{sec:org20db83b}
 For the true conditional distribution of \(A\) given \(\X\), \(\g_0(\cdot \mid \X)\), and \(\Hat{\g} : Q_n \to \Hat{\g}(Q_n)\), let \(L_\g\) be a loss function such that the risk \(\mathbb{E}_0\left[L_\g(\Hat{\g}, O)\right]\) is minimized when \(\Hat{\g} = \g_0\). For instance, with a binary \(A\), we may specify the negative log loss \(L_\g(\Hat{\g}, O) = \text{-}\log\left(\Hat{\g}(1 \mid \X)^A \; \Hat{\g}(0 \mid \X))^{1-A}\right)\). We can then define the discrete superlearner selector which chooses from a set of candidate models \(\mathcal{M_\g}\) the candidate propensity score model that has minimal cross validated risk 
 \[ \Hat{\g}^{SL} = \argmin_{\Hat{\g} \in \mathcal{M}_\g} \sum_{v = 1}^{V} P_{Q^\mathcal{V}_v} \; L_\g(\Hat{\g}(Q^\mathcal{T}_v), Q^\mathcal{V}_v)\]
 
@@ -676,10 +725,10 @@ PropScores <- getPropScore(TrtVal = observed[["A"]], CovDT = CovDataTable, TrtMo
 Error in data.table(`P(0|L)` = signif(PropScores\(`A=0`, 3), `P(1|L)` = signif(PropScores\)`A=1`,  : 
   object 'PropScores' not found
 
-Error in loadNamespace(x): there is no package called ‘concrete’
+Error in concrete:::getTargetTime(TargetTime = unique(obs[status > 0, : TargetTime must not target times after which all individuals are Censored, 4191
 
-\subsection*{Hazard Estimation}
-\label{sec:org38542cc}
+\subsection{Hazard Estimation}
+\label{sec:org91ec76f}
 Let \(\lambda_{0,\,\delta}\) be the true censoring and cause-specific hazards when \(\delta = 0\) and \(\delta = 1, \dots, J\) respectively. Let \(\mathcal{M}_\delta\) for \(\delta = 0, \dots, J\) be the sets of candidate models, \(\{\Hat{\lambda}_\delta : Q_n \to \Hat{\lambda}_\delta(Q_n)\}\), for the censoring and cause-specific hazards and let \(L_\delta\) be loss functions such that the risks \(\mathbb{E}_0\left[L_\delta(\Hat{\lambda}_\delta, O)\right]\) are minimized when \(\Hat{\lambda}_\delta = \lambda_{0,\,\delta}\), for instance log likelihood loss. We can then define the discrete superlearner selectors for each \(\delta\) which choose from the set of candidate models \(\mathcal{M_\delta}\) the candidate propensity score model that has minimal cross validated risk 
 \[ \Hat{\lambda}_\delta^{SL} = \argmin_{\Hat{\lambda}_\delta \in \mathcal{M}_\delta} \sum_{v = 1}^{V} P_{Q^\mathcal{V}_v} \; L_\g(\Hat{\lambda}_\delta(Q^\mathcal{T}_v), Q^\mathcal{V}_v)\]
 
@@ -714,16 +763,16 @@ HazSurvPreds <- getHazSurvPred(Data = observed,
                                Censored = Censored)
 \end{lstlisting}
 
-\subsubsection*{Lagged Censoring Survival}
-\label{sec:orged766eb}
+\subsubsection{Lagged Censoring Survival}
+\label{sec:org66d4867}
 Let \(\mathcal{S}\) be the set containing all target and observed event times, ordered such that \(s_1 < s_2 < \dots s_{max}\). Then for all \(s_{\tK} \,\in\, \mathcal{S}\) we compute
 \begin{align*}
 \Hat{S}_c(s_{\tK}\text{-} \AX) &= \exp \left(\text{-} \sum_{\tKi = 1}^{\tK-1} \Hat{\lambda}_c^{SL}(s_{\tKi} \AX)\right) \\
 &= \exp\left(\text{-} \int_{0}^{\tK\text{-}} \Hat\lambda^{SL}_c(s \AX) ds\right)\\
 \end{align*}
 
-\subsubsection*{Cause-Specific Hazards, Event-Free Survival, and Cause-Specific Absolute Risks}
-\label{sec:orga8cc423}
+\subsubsection{Cause-Specific Hazards, Event-Free Survival, and Cause-Specific Absolute Risks}
+\label{sec:org0db883c}
 For \(\lj = 1,\dots,J\) and \({\tK} \,\in\, \mathcal{S}\), the super learner selections \(\Hat\lambda_\lj^{SL}\) are fit on the full observed data \(Q_n\), and used to compute the event free survival
 \begin{align*}
 \Hat S(s_{\tK} \AX) &= \exp\left(\text{-} \sum_{{\tKi} = 1}^{\tK} \sum_{\lj = 1}^{J} \Hat\lambda^{SL}_\lj(s_{\tKi} \AX) \right)\\
@@ -732,12 +781,12 @@ For \(\lj = 1,\dots,J\) and \({\tK} \,\in\, \mathcal{S}\), the super learner sel
 \Hat F_\lj(s_{\tK} \AX) &= \sum_{{\tKi} = 1}^{\tK} \Hat S(s_{\tKi} \AX) \, \Hat\lambda^{SL}_\lj(s_{\tKi} \AX)
 \end{align*}
 
-\section*{Computing the Efficient Influence Function}
-\label{sec:org677424a}
+\section{Computing the Efficient Influence Function}
+\label{sec:org8d2c973}
 For each desired treatment regime \(\trt\), each target time \tk, and each target event \jj, the efficient influence functions for each individual are computed in parts.
 
-\subsection*{Clever Covariate \(h_{\trt, \jj, \lj, \tk, s}(O)\)}
-\label{sec:org339bf3e}
+\subsection{Clever Covariate \(h_{\trt, \jj, \lj, \tk, s}(O)\)}
+\label{sec:org9bcc8e1}
 For \(\lj = 1,\dots, J\) and \(s \,\in\, \mathcal{S}\), the stored cause-specific hazards \(\Hat\lambda^{SL}_\lj(s \AX)\) and event-free survival \(\Hat S(s \AX)\) are used to calculate the cause-specific absolute risks \(\Hat F_\lj(s \AX)\), then combined with the nuisance weight to calculate the clever covariates.
 \begin{align*}
     h_{\trt,\, \jj,\, \lj,\, \tk,\, s}&(\Hat \lambda, \Hat \g, \Hat S_c)(O) = \\[2mm]
@@ -747,8 +796,8 @@ For \(\lj = 1,\dots, J\) and \(s \,\in\, \mathcal{S}\), the stored cause-specifi
 
 The clever covariate is a function of the {\color{blue}desired intervention density} which is user specified, the {\color{green!70!black} observed intervention densities} which are not changed by tmle targeting, and the {\color{red}non-intervention outcome densities} which are updated by targeting.  
 
-\subsection*{Estimating the EIC}
-\label{sec:org53fe54c}
+\subsection{Estimating the EIC}
+\label{sec:org570ff53}
 \begin{align*}
     D^*_{\trt, \jj, \tk}(\Hat \lambda, \Hat \g, \Hat S_c)(O) &= \sum_{\lj = 1}^{J} \sum_{\tKi = 1}^{\tK} \;  h_{\trt,\, \jj,\, \lj,\, \tk, s}(\Hat \lambda, \Hat \g, \Hat S_c)(O) \\
 &\hspace{2cm}\left(\1(\Delta = \jj, \T = s_{\tKi}) - \1(\T \geq s_\tK) \, \Hat \lambda_\lj(s_{\tKi} \AX)\right)\\[2mm]
@@ -778,8 +827,8 @@ EIC <- getEIC(Estimates = Estimates,
        MinNuisance = MinNuisance)
 \end{lstlisting}
 
-\section*{TMLE one-step update}
-\label{sec:org457fed4}
+\section{TMLE one-step update}
+\label{sec:orge6a78d2}
 Let \(D^*\) be the vector of efficient influence functions
 \begin{align*}
 D^{*}(\lambda, \g, S_c)(O) &= \left(D^*_{\trt, \jj, \tk}(\lambda, \g, S_c)(O) : \trt \in \mathcal{A}, \jj \in \mathcal{J}, \tk \in \TK)\right)
@@ -795,4 +844,6 @@ where
 
 The default value of \(\epsilon\) in the software is 0.1, and the algorithm stops at \(\epsilon_i\) when
 \[\mathbb{P}_n D^*(\Hat \lambda_{\epsilon_i}, \Hat \g, \Hat S_c)(O) \leq \frac{\sqrt{\mathbb{P}_n \;D^*(\Hat \lambda_{\epsilon_i}, \Hat \g, \Hat S_c)(O)^2}}{\sqrt{n} \, \log(n)}\]
+
+\bibliography{main}
 \end{document}
