@@ -1,4 +1,3 @@
-
 #+TITLE: concrete R Paper
 #+Author: David Chen, Thomas Gerds, Helene Rytgaard, Maya Petersen, Mark van der Laan (additional authors TBD)
 #+Date: 
@@ -51,7 +50,17 @@ Recently targeted maximum likelihood-based estimation (TMLE) has been used to de
 
 \tableofcontents
 
-\chapter{Introduction}
+* Introduction
+
+# what it is about
+
+The \CRANpkg{concrete} answers causal questions with time to event
+outcomes in continous time. It implements the TMLE method developed in cite:
+
+# what it is not about
+
+# how it relates to other peoples work
+
 We are often interested in the causal effect of interventions on the time until some outcome, often called a failure event, occurs. For instance the PBC (primary biliary cholangitis) data set resulted from the Mayo Clinic's randomized controlled trial aimed at determining if D-penicillamine was better than placebo at delaying the death of patients with PBC. In this trial, as in many time-to-event studies, the failure event (i.e. death) was not observed for many patients either because the study had ended or because they had dropped out of contact while they were still alive. The occurence of such events, which obscure the observation of the event of interest and which researchers would have ideally prevented, is common in time-to-event data and is referred to as right-censoring. On the other hand, other patients received a liver transplant during the study, which saved them from dying from PBC; This however was an outcome that researchers might not have wanted to prevent; after all, it could be important to know if D-penicillamine affects when or how patients received transplants. In cases like this when mutually exclusive outcomes are jointly of interest to researchers, we have the case of competing events. With complex survival data, just formulating clear causal questions can be a serious undertaking. Fortunately, the formal causal frameworks developed in recent decades, such as the Neyman-Rubin language of counterfactuals, help us to define unambiguous causal questions and to determine what observed data is needed to answer them. We will demonstrate this process of causal identification in section 2.1.
 
 Of course the task is not finished after causal identification; an estimate must be computed and its uncertainty quantified. When precision and reliability are desired, the choice of appropriate estimators becomes important. The standard unadjusted Kaplan-Meier and Aalen-Johansen estimators are simple and reliable if censoring happens independently of failure events but are inefficient as they do not utilize covariate information and are susceptible to bias when the independence assumption is violated. Alternatively, parametric estimators such as the ubiquitous Cox model perform well but if real process lies within the parametric model; however, this is rarely a known fact in real world data. Instead, we might turn to semi-parametric efficient estimators such as TMLE.
@@ -117,7 +126,7 @@ To illustrate the function of this package, we will consider a running example o
 \chapter{Concepts}
 #+name: data
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw  :exports none  :session *R* :cache no  :eval always
+#+BEGIN_SRC R  :results output raw drawer  :exports none  :session *R* :cache no  :eval always
 library(data.table)
 library(survival)
 library(zoo)
@@ -125,7 +134,8 @@ library(prodlim)
 library(nleqslv)
 library(sl3)
 library(origami)
-devtools::load_all("/Shared/Projects/concrete")
+# devtools::load_all("/Shared/Projects/concrete")
+devtools::load_all("~/research/SoftWare/devel-tmle-survival/ConCR-TMLE/")
 set.seed(123456)
 n <- 100
 A <- rbinom(n, 1, .3)
@@ -151,6 +161,12 @@ attr(observed, "EventTime") <- "T.tilde"
 attr(observed, "EventType") <- "Delta"
 attr(observed, "Treatment") <- "A"
 #+END_SRC
+
+#+RESULTS: data
+:results:
+[1m[22m[36mℹ[39m Loading [34mconcrete[39m
+:end:
+
 
 
 \section{The Causal Model: Counterfactuals, Interventions, and Causal Estimands}
@@ -229,17 +245,19 @@ $P(T_{a} \leq t, J=j)=E_{W} \int_{s \leq t} P(T=s, J=j \mid T \geq s,\, W,\, A=a
 $P(T_{a} \leq t, J=j) = E{W} \int_{s \leq t} \lambda_{j}(s \mid W, A=a) \prod_{\tau \leq s} (1-\lambda(\tau \mid W,\, A=a))$ 
 Again, as mentioned above, these cause specific hazards $j$ are themselves expressed in terms of conditional probabilities of $N_{j}(t), j=1, 2$.
 
-\section{Statistical Estimands}
+** Statistical Estimands
+
 Given this data, we might be interested in comparing the risk of experiencing event 1 by some time $t$ if everyone were given the intervention \(\mathbb{E}(T^1_1)\) versus the risk of experiencing event 1 by the same time $t$ if everyone were given the placebo \(\mathbb{E}(T^0_1)\). Typically this comparison might be a risk difference \(\mathbb{E}(T^1_1) - \mathbb{E}(T^0_1)\), or a risk ratio \(\mathbb{E}(T^1_1) / \mathbb{E}(T^0_1)\).
 If however subjects are susceptible to more than a single event, solely focusing on the effect of a treatment on one event can be misleading. In our example, an intervention might decrease the risk of CV death because it improves subjects cardiovascular health, or it might decrease the risk of CV death by causing subjects to die of other causes before cardiovascular disease. The ability to distinguish between these mechanisms of effect is clearly important, and so in competing risks settings we should track the effect of treatment on the set of possible events, \(\left(\mathbb{E}(T^1_1) - \mathbb{E}(T^0_1)\,,\;\mathbb{E}(T^1_2) - \mathbb{E}(T^0_2)\right)\)
 
-\section{Estimation}
+** Estimation
 TBD
 
-\chapter{Using concrete}
+* Using concrete
+
 There are 3 main functions in concrete: formatArguments(), doConcrete, getOutput. Reflecting our vision of good statistical practice, the majority of user interaction is put into defining the desired analysis using formatArguments(). The user specifies the data structure, desired interventions, and choices regarding estimation. formatArguments() checks these inputs and will return errors and warnings if the specified analysis runs into any red flags. doConcrete runs continuous-time one-step survival TMLE and returns a fitted object. getOutput prints, summarizes, and plots.  
 
-\section{formatArguments()}
+** formatArguments()
 formatArguments() is how the user specifies the estimation problem which consists of the major features of the observed data structure, the target quantities, and estimation choices.
 
 \subsection{Data}
@@ -314,15 +332,15 @@ Publish::org(attr(ConcreteArgs$Data, "CovNames"))
 
 The "Data" element also includes additional attributes: the `EventTime`, `EventType`, `Treatment`, `ID`, and `RenameCovs` arguments are all attached to the `Data` data table as attributes named respectively, e.g. attr(\*, "EventTime").
 
-\subsection{Target Estimand}
+** Target Estimand
 `concrete` targets absolute risks and/or survival probabilities at specific target times for specific events under specific treatment regimes. 
 
-\subsubsection{Treatment Regime}
+*** Treatment Regime
 As discussed in the previous section, interventions may take the form of stochastic, dynamic, or static regimes. Desired interventions are passed into `concrete` with the `Intervention` argument. For static treatment regimes the interventions can be specified as numeric vector containing the desired global regimes, e.g. "0", "1", or "c(0,1)". Dynamic and stochastic regimes are specified by a pair of functions: an 'intervention' function which outputs desired treatment *assignments* and a 'g.star' function which outputs desired treatment *probabilities*. Functionality for specifying `g.star` functions based on estimated propensity scores for stochastic interventions will be added in the future.
 
 Though the static regimes for a 2-armed trial can be simply specified as mentioned above, the functions corresponding to assigning everyone the treatment (i.e. trt = 1) and assigning everyone to a control (i.e. trt = 0) can be created using `makeITT()`. The result of `makeITT()` is a list of two desired counterfactual interventions: "A=1" details an the intervention where everyone is assigned treatment, and "A=0" details an intervention where everyone is assigned control. This is meant to be a template for users to explore more complex dynamic regimes.
 
-\subsubsection{Target Events}
+*** Target Events
 The `TargetEvent` argument is used to specify which events are of interest, events which must be encoded as non-negative integers. In the `pbc` dataset for example, there are 3 possible values of "status": 0 for censored, 1 for transplant, and 2 for death. In `concrete` 0 is similarly reserved to indicate the presence of censoring, while failure events can be encoded as any positive integer. Setting `TargetEvent` to "c(1, 2)" targets the risk of transplant and death jointly in this dataset. By default `concrete` by targets all observed non-censoring events, so leaving the `TargetEvent` argument as NULL would achieve the same result.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
@@ -332,7 +350,7 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
                                 Intervention = ITT, TargetEvent = 1:2)
 #+END_SRC
 
-\subsubsection{Target Time}
+*** Target Time
 The `TargetTime` argument specifies the time(s) at which estimates of the event-specific absolute risks and/or event-free survival are desired. Target times should be restricted to the time range in which failure events are observed, since estimating event risks after the point in time where all individuals are censored entails unsupported extrapolation. To discourage this behaviour, formatArguments() will return an error if target time is after the last observed failure event time. If no TargetTime is probided, then `concrete` will target the last observed event time, though this is likely to result in a highly variable estimate if prior censoring is substantial.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
@@ -360,10 +378,10 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
                                 Intervention = ITT, TargetEvent = 1:2, TargetTime = (3:7)*500)
 #+END_SRC
 
-\subsection{Estimator Specification}
+** Estimator Specification
 The arguments involved in estimation are the cross-validation setup `CVArg`, the estimation models `Model`, the software backends `PropScoreBackend` and `HazEstBackend`, `MaxUpdateIter`, `OneStepEps`, and `MinNuisance`. It should be noted here that `Model` is used here to conform with common usage in statistical analysis packages, rather than to refer to a statistical or causal model as we have used it in the previous sections. 
 
-\subsubsection{Cross-Validation}
+*** Cross-Validation
 
 `concrete` uses `origami` to specify cross-validation folds, specifically the function `origami::make_folds()`. If no input is provided to the `formatArguments(CVArg= )` argument, concrete will use origami to implement a simple 10-fold cross-validation scheme. For how to specify more sophisticated cross-validation schemes, see [[https://tlverse.org/origami/articles/generalizedCV.html][this brief vignette]] or [[https://tlverse.org/tlverse-handbook/origami.html][detailed chapter on using origami from the tlverse handbook]]
 
