@@ -1,10 +1,13 @@
+\title{concrete R Paper}
+\author{by David Chen, Thomas Gerds, Helene Rytgaard, Maya L. Petersen, Mark van der Laan, ...}
+
+\maketitle
+
 #+begin_export latex
 \abstract{
-Recently targeted maximum likelihood-based estimation (TMLE) has been used to develop estimators of survival curve derived parameters for time-to-event data. The single timepoint continuous-time survival TMLE method is implemented in the `concrete` package for `R`. `concrete` provides methods to estimate intervention and cause-specific absolute risks as well as contrastive parameters such as risk differences and risk ratios. The package allows the risks of multiple causes to be jointly targeted in the case of competing risks, at multiple time points and in the presence of right-censoring. In this paper we describe and illustrate the usage of the `concrete` package.
+Recently targeted maximum likelihood-based estimation (TMLE) has been used to develop estimators of survival curve derived parameters for time-to-event data. The single timepoint continuous-time survival TMLE method is implemented in the \CRANpkg{concrete} package for `R`. \CRANpkg{concrete} provides methods to estimate intervention and cause-specific absolute risks as well as contrastive parameters such as risk differences and risk ratios. The package allows the risks of multiple causes to be jointly targeted in the case of competing risks, at multiple time points and in the presence of right-censoring. In this paper we describe and illustrate the usage of the \CRANpkg{concrete} package.
 }
 #+end_export
-
-\tableofcontents
 
 * Introduction
 :PROPERTIES:
@@ -26,29 +29,26 @@ We refer to readers who want a hands-on introduction to TMLE for
 survival analysis as well as to readers who want to use our package
 for their own project.
 
-
 # what it is not about
 The package can be used for static and dynamic binary treatments given
 at baseline. It deals with right censoring and competing risks.  The
 package cannot (not yet) analyse time-dependent treatments, multiple
 treatments, continuous or multinomial treatments.
 
-
-
 # how it relates to other peoples work
 
 Related packages are ... 
 
-
-We are often interested in the causal effect of interventions on the time until some outcome, often called a failure event, occurs. For instance the PBC (primary biliary cholangitis) data set resulted from the Mayo Clinic's randomized controlled trial aimed at determining if D-penicillamine was better than placebo at delaying the death of patients with PBC. In this trial, as in many time-to-event studies, the failure event (i.e. death) was not observed for many patients either because the study had ended or because they had dropped out of contact while they were still alive. The occurence of such events, which obscure the observation of the event of interest and which researchers would have ideally prevented, is common in time-to-event data and is referred to as right-censoring. On the other hand, other patients received a liver transplant during the study, which saved them from dying from PBC; This however was an outcome that researchers might not have wanted to prevent; after all, it could be important to know if D-penicillamine affects when or how patients received transplants. In cases like this when mutually exclusive outcomes are jointly of interest to researchers, we have the case of competing events. With complex survival data, just formulating clear causal questions can be a serious undertaking. Fortunately, the formal causal frameworks developed in recent decades, such as the Neyman-Rubin language of counterfactuals, help us to define unambiguous causal questions and to determine what observed data is needed to answer them. We will demonstrate this process of causal identification in section 2.1.
+# Old Intro
+We are often interested in the causal effect of interventions on the time until some outcome, often called a failure event, occurs. For instance the PBC (primary biliary cholangitis) data set resulted from the Mayo Clinic's randomized controlled trial aimed at determining if D-penicillamine was better than placebo at delaying the death of patients with PBC. In this trial, as in many time-to-event studies, the failure event (i.e. death) was not observed for many patients either because the study had ended or because they had dropped out of contact while they were still alive. The occurence of such events, which obscure the observation of the event of interest and which researchers would have ideally prevented, is common in time-to-event data and is referred to as right-censoring. On the other hand, other patients received a liver transplant during the study, which saved them from dying from PBC; This however was an outcome that researchers might not have wanted to prevent; after all, it could be important to know if D-penicillamine affects when or how patients received transplants. In cases like this when mutually exclusive outcomes are jointly of interest to researchers, we have the case of competing events. With complex survival data, just formulating clear causal questions can be a serious undertaking. Fortunately, the formal causal frameworks developed in recent decades, such as the Neyman-Rubin language of counterfactuals, help us to define unambiguous causal questions and to determine what observed data is needed to answer them. We will demonstrate this process of causal identification.
 
 Of course the task is not finished after causal identification; an estimate must be computed and its uncertainty quantified. When precision and reliability are desired, the choice of appropriate estimators becomes important. The standard unadjusted Kaplan-Meier and Aalen-Johansen estimators are simple and reliable if censoring happens independently of failure events but are inefficient as they do not utilize covariate information and are susceptible to bias when the independence assumption is violated. Alternatively, parametric estimators such as the ubiquitous Cox model perform well but if real process lies within the parametric model; however, this is rarely a known fact in real world data. Instead, we might turn to semi-parametric efficient estimators such as TMLE.
 
-Targeted maximum likelihood-based estimation (TMLE) is a framework for constructing regular and asymptotically linear estimators for pathwise-differential parameters in large statistical models. TMLE has been applied to causally interpretable parameters in many applications, including for survival analysis in discrete-time. The packages `ltmle`, `stremr`, and `survtmle` can all be applied to discrete-time TMLE of survival estimands, but `concrete` is the first package to implement a continuous-time survival TMLE. `ltmle` and `stremr` handle longitudinal treatment and time-dependent confounding using the sequential regression TMLE, while `survtmle` targets discrete survival outcomes with a TMLE of a discrete-time hazard-based influence function.
+Targeted maximum likelihood-based estimation (TMLE) is a framework for constructing regular and asymptotically linear estimators for pathwise-differential parameters in large statistical models. TMLE has been applied to causally interpretable parameters in many applications, including for survival analysis in discrete-time. The packages `ltmle`, `stremr`, and `survtmle` can all be applied to discrete-time TMLE of survival estimands, but \CRANpkg{concrete} is the first package to implement a continuous-time survival TMLE. `ltmle` and `stremr` handle longitudinal treatment and time-dependent confounding using the sequential regression TMLE, while `survtmle` targets discrete survival outcomes with a TMLE of a discrete-time hazard-based influence function.
 
 When real-world data is collected on a fine enough time scale to be considered more or less continuous, the choice of discretization becomes non-trivial. With longitudinal treatments and time-dependent confounding, the ramifications of discretization are serious to the point of re-defining the causal model. This remains an open practical problem as continuous-time TMLE for these longitudinal problems is not yet implemented. However, even in the single time-point intervention, non-longitudinal causal problems discretization is not a choice without ramifications. Overly coarse discretization may cost the estimator efficiency, while overly fine discretization may result in biased or non-converging estimates of small hazards. Perhaps equally problematic, the estimates resulting from different discretization choices can be different; what is the right way to interpret these different estimates and what is the correct a causal interpretation? Similarly to the choice of not assuming a small parametric model without ample justification, we believe that here we should continue to respect what is truly known about the data; if the data is truly continous, then we should analyze it with a continuous-time method. concrete is the first R package implementing a continuous-time TMLE for survival estimands.
 
-`concrete` estimates cause-specific absolute risks, event-free survival, risk differences and risk ratios with or without competing risks for a point treatment with baseline covariate adjustment.
+\CRANpkg{concrete} estimates cause-specific absolute risks, event-free survival, risk differences and risk ratios with or without competing risks for a point treatment with baseline covariate adjustment.
 
 To illustrate the function of this package, we will consider a running example of the pbc dataset.
 
@@ -103,50 +103,6 @@ To illustrate the function of this package, we will consider a running example o
 7. Appendsix 2: How concrete does continuous-time TMLE
 
 * Concepts
-#+name: data
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw drawer  :exports none  :session *R* :cache no  :eval always
-library(data.table)
-library(survival)
-library(zoo)
-library(prodlim)
-library(nleqslv)
-library(sl3)
-library(origami)
-# devtools::load_all("/Shared/Projects/concrete")
-devtools::load_all("~/research/SoftWare/devel-tmle-survival/ConCR-TMLE/")
-set.seed(123456)
-n <- 100
-A <- rbinom(n, 1, .3)
-L1 <- round(rnorm(n, 0, 1), 2)
-L3 <- round(runif(n, 0, 5), 2)
-L2 <- as.factor(rbinom(n, 5, 0.6))
-T.j1.a1 <- round(rweibull(n, 1, 1), 2)
-T.j1.a0 <- round(rweibull(n, 1, 1.2), 2)
-T.j2.a1 <- round(rweibull(n, 1.3, 1), 2)
-T.j2.a0 <- round(rweibull(n, 1.3, .9), 2)
-C <- round(rexp(n, 1.8), 2)
-
-T.A <- pmin(T.j1.a1*(A == 1) + T.j1.a0*(A == 0),
-            T.j2.a1*(A == 1) + T.j2.a0*(A == 0))
-T.tilde <- pmin(T.A, C)
-Delta <- as.numeric(T.A <= C)
-counterfactuals <- data.table(T.j1.a0 = T.j1.a0, T.j1.a1 = T.j1.a1,
-                              T.j2.a0 = T.j2.a0, T.j2.a1 = T.j2.a1,
-                              L1 = L1, L2 = L2, L3 = L3)
-observed <- data.table(T.tilde = T.tilde, Delta = Delta,
-                       A = A, L1 = L1, L2 = L2, L3 = L3)
-attr(observed, "EventTime") <- "T.tilde"
-attr(observed, "EventType") <- "Delta"
-attr(observed, "Treatment") <- "A"
-#+END_SRC
-
-#+RESULTS: data
-:results:
-[1m[22m[36mℹ[39m Loading [34mconcrete[39m
-:end:
-
-
 
 ** {The Causal Model: Counterfactuals, Interventions, and Causal Estimands}
 With time-to-event data, the essential counterfactual outcome is the time until some event or events occur to some subjects if they were intervened upon in some way. Let $A$ represent this intervention variable, which could be binary, such as with a 2-armed trial, multinomial, or even continuous. Interventions on this variable can take on different forms; the simplest is just setting the variable to a constant value $a$ in the range of $A$, a so-called a static regime. Alternatively the intervention could be a function $d$, maybe specifying a dynamic regime with a deterministic function that incorporates some baseline covariates $\L$, $d(\L)$, or even specifying stochastic regime with a probabilistic function that could depend on the treatment variable, $d(A, \L). If we let $d$ define a desired intervention, then for $J$ events of interest we can define the counterfactual time-to-event variables $T^d_j \,,\; j = 1, ..., J$, representing the time until event $j$ happens if subjects were intervened upon following rule $d$. With this we can write the generic form of time-to-event counterfactual data with $J$ target events, baseline covariates $L$ and intervention rule $d$ determining the value of intervention variable $A$.
@@ -234,15 +190,7 @@ TBD
 
 * Using concrete
 
-There are 3 main functions in concrete: formatArguments(), doConcrete,
-getOutput. Reflecting our vision of good statistical practice, the
-majority of user interaction is put into defining the desired analysis
-using formatArguments(). The user specifies the data structure,
-desired interventions, and choices regarding
-estimation. formatArguments() checks these inputs and will return
-errors and warnings if the specified analysis runs into any red
-flags. doConcrete runs continuous-time one-step survival TMLE and
-returns a fitted object. getOutput prints, summarizes, and plots.
+\CRANpkg{concrete} was written for causal analyses of time-to-event data, which is reflected in its structure and variable naming, though it of course can also be used for non-causal estimation problems. There are 3 main user-facing functions in \CRANpkg{concrete}: \code{formatArguments()}, \code{doConcrete}, and \code{getOutput}. Reflecting our vision of good statistical practice, the majority of user effort is directed into defining the desired analysis by specifying arguments into \code{formatArguments()}. Broadly speaking, arguments into \code{formatArguments} fall into 3 broad categories: specifying the observed data structure, specifying the target estimand, and specifying the estimation algorithm. \code{formatArguments()} checks its inputs for correct formatting and will return errors, warnings, and messages as necessary. The output of \code{formatArguments} is an object of class \code{"ConcreteArgs"}, which can be modified and passed back through \code{formatArguments} - a process than can be repeated as many times as necessary until all arguments are adequately specified. A \code{"ConcreteArgs"} object that returns without errors can be passed into \code{doConcrete}, which runs the specified continuous-time one-step survival TMLE and returns a \code{"ConcreteEst"} object which will be described in further detail in Section \ref{doConcrete}. getOutput prints, summarizes, and plots.
 
 ** formatArguments()
 formatArguments() is how the user specifies the estimation problem which consists of the major features of the observed data structure, the target quantities, and estimation choices.
@@ -251,9 +199,9 @@ formatArguments() is how the user specifies the estimation problem which consist
 Right-censored time-to-event data with a single timepoint treatment and baseline covariates takes on the following general form
 \[O = (\T, \Delta, A, \L) \]
 
-To pass this data into `concrete`, it must not include missing (e.g. NA, NaN) or infinite values. Any necessary covariate imputation should be done by the user before using `concrete` (we advise augmenting the data with columns indicating where covariate imputation was done) while missingess in treatment or event times and types aside from right-censoring is outside the scope of this package.
+To pass this data into \CRANpkg{concrete}, it must not include missing (e.g. NA, NaN) or infinite values. Any necessary covariate imputation should be done by the user before using \CRANpkg{concrete} (we advise augmenting the data with columns indicating where covariate imputation was done) while missingess in treatment or event times and types aside from right-censoring is outside the scope of this package.
 
-In the PBC dataset example, $\T$ is the column `time`, $\Delta$ is the column `status`, $A$ is the column `trt`, and $\L$ consists of all the other columns. There is additionally an `id` column which can be passed into `concrete` which would be important for analyzing clustered or longitudinal confounding data, though `concrete` does not yet handle those cases. 
+In the PBC dataset example, $\T$ is the column `time`, $\Delta$ is the column `status`, $A$ is the column `trt`, and $\L$ consists of all the other columns. There is additionally an `id` column which can be passed into \CRANpkg{concrete} which would be important for analyzing clustered or longitudinal confounding data, though \CRANpkg{concrete} does not yet handle those cases. 
 
 #+name: pbc code
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
@@ -274,7 +222,7 @@ obs[, age := round(age, 1)]
 Publish::org(head(obs,5))
 #+END_SRC
 
-The data set is passed into `concrete` through the `formatArguments()` `DataTable` argument as a data table or data frame. It must contain columns specifying 1) the observed event or censoring times, 2) the event type (where a value of 0 indicates censoring), and 3) the treatment. The event/censoring times must be positive numbers and the name of that column is specified by the `EventTime` argument. The event/censoring type must be non-negative integers (with 0 indicating censoring) and that column name is specified by the `EventType` argument. The treatment must currently be binary numeric (0 or 1) and that column name is specified by the `Treatment` argument. Additionally the `DataTable` may include columns containing 1) uniquely identifying subject ids and 2) any number of additional columns containing baseline covariates.
+The data set is passed into \CRANpkg{concrete} through the `formatArguments()` `DataTable` argument as a data table or data frame. It must contain columns specifying 1) the observed event or censoring times, 2) the event type (where a value of 0 indicates censoring), and 3) the treatment. The event/censoring times must be positive numbers and the name of that column is specified by the `EventTime` argument. The event/censoring type must be non-negative integers (with 0 indicating censoring) and that column name is specified by the `EventType` argument. The treatment must currently be binary numeric (0 or 1) and that column name is specified by the `Treatment` argument. Additionally the `DataTable` may include columns containing 1) uniquely identifying subject ids and 2) any number of additional columns containing baseline covariates.
 
 By default columns containing baseline covariates will be renamed in a standardized way and any categorical covariates will be 1-hot encoded (Cox model formulas for hazard estimation will automatically be renamed as necessary, Section ...). The renamed and formatted data table can be accessed through the "Data" element of the "ConcreteArgs" object returned by `formatArguments()`. This behaviour can be turned off by setting `RenameCovs` to "FALSE".
 
@@ -320,15 +268,15 @@ Publish::org(attr(ConcreteArgs$Data, "CovNames"))
 The "Data" element also includes additional attributes: the `EventTime`, `EventType`, `Treatment`, `ID`, and `RenameCovs` arguments are all attached to the `Data` data table as attributes named respectively, e.g. attr(\*, "EventTime").
 
 ** Target Estimand
-`concrete` targets absolute risks and/or survival probabilities at specific target times for specific events under specific treatment regimes. 
+\CRANpkg{concrete} targets absolute risks and/or survival probabilities at specific target times for specific events under specific treatment regimes. 
 
 *** Treatment Regime
-As discussed in the previous section, interventions may take the form of stochastic, dynamic, or static regimes. Desired interventions are passed into `concrete` with the `Intervention` argument. For static treatment regimes the interventions can be specified as numeric vector containing the desired global regimes, e.g. "0", "1", or "c(0,1)". Dynamic and stochastic regimes are specified by a pair of functions: an 'intervention' function which outputs desired treatment *assignments* and a 'g.star' function which outputs desired treatment *probabilities*. Functionality for specifying `g.star` functions based on estimated propensity scores for stochastic interventions will be added in the future.
+As discussed in the previous section, interventions may take the form of stochastic, dynamic, or static regimes. Desired interventions are passed into \CRANpkg{concrete} with the `Intervention` argument. For static treatment regimes the interventions can be specified as numeric vector containing the desired global regimes, e.g. "0", "1", or "c(0,1)". Dynamic and stochastic regimes are specified by a pair of functions: an 'intervention' function which outputs desired treatment *assignments* and a 'g.star' function which outputs desired treatment *probabilities*. Functionality for specifying `g.star` functions based on estimated propensity scores for stochastic interventions will be added in the future.
 
 Though the static regimes for a 2-armed trial can be simply specified as mentioned above, the functions corresponding to assigning everyone the treatment (i.e. trt = 1) and assigning everyone to a control (i.e. trt = 0) can be created using `makeITT()`. The result of `makeITT()` is a list of two desired counterfactual interventions: "A=1" details an the intervention where everyone is assigned treatment, and "A=0" details an intervention where everyone is assigned control. This is meant to be a template for users to explore more complex dynamic regimes.
 
 *** Target Events
-The `TargetEvent` argument is used to specify which events are of interest, events which must be encoded as non-negative integers. In the `pbc` dataset for example, there are 3 possible values of "status": 0 for censored, 1 for transplant, and 2 for death. In `concrete` 0 is similarly reserved to indicate the presence of censoring, while failure events can be encoded as any positive integer. Setting `TargetEvent` to "c(1, 2)" targets the risk of transplant and death jointly in this dataset. By default `concrete` by targets all observed non-censoring events, so leaving the `TargetEvent` argument as NULL would achieve the same result.
+The `TargetEvent` argument is used to specify which events are of interest, events which must be encoded as non-negative integers. In the `pbc` dataset for example, there are 3 possible values of "status": 0 for censored, 1 for transplant, and 2 for death. In \CRANpkg{concrete} 0 is similarly reserved to indicate the presence of censoring, while failure events can be encoded as any positive integer. Setting `TargetEvent` to "c(1, 2)" targets the risk of transplant and death jointly in this dataset. By default \CRANpkg{concrete} by targets all observed non-censoring events, so leaving the `TargetEvent` argument as NULL would achieve the same result.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw drawer  :exports code  :session *R* :cache no  
@@ -338,7 +286,7 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
 #+END_SRC
 
 *** Target Time
-The `TargetTime` argument specifies the time(s) at which estimates of the event-specific absolute risks and/or event-free survival are desired. Target times should be restricted to the time range in which failure events are observed, since estimating event risks after the point in time where all individuals are censored entails unsupported extrapolation. To discourage this behaviour, formatArguments() will return an error if target time is after the last observed failure event time. If no TargetTime is probided, then `concrete` will target the last observed event time, though this is likely to result in a highly variable estimate if prior censoring is substantial.
+The `TargetTime` argument specifies the time(s) at which estimates of the event-specific absolute risks and/or event-free survival are desired. Target times should be restricted to the time range in which failure events are observed, since estimating event risks after the point in time where all individuals are censored entails unsupported extrapolation. To discourage this behaviour, formatArguments() will return an error if target time is after the last observed failure event time. If no TargetTime is probided, then \CRANpkg{concrete} will target the last observed event time, though this is likely to result in a highly variable estimate if prior censoring is substantial.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache no  
@@ -370,7 +318,7 @@ The arguments involved in estimation are the cross-validation setup `CVArg`, the
 
 *** Cross-Validation
 
-`concrete` uses `origami` to specify cross-validation folds, specifically the function `origami::make_folds()`. If no input is provided to the `formatArguments(CVArg= )` argument, concrete will use origami to implement a simple 10-fold cross-validation scheme. For how to specify more sophisticated cross-validation schemes, see [[https://tlverse.org/origami/articles/generalizedCV.html][this brief vignette]] or [[https://tlverse.org/tlverse-handbook/origami.html][detailed chapter on using origami from the tlverse handbook]]
+\CRANpkg{concrete} uses `origami` to specify cross-validation folds, specifically the function `origami::make_folds()`. If no input is provided to the `formatArguments(CVArg= )` argument, concrete will use origami to implement a simple 10-fold cross-validation scheme. For how to specify more sophisticated cross-validation schemes, see [[https://tlverse.org/origami/articles/generalizedCV.html][this brief vignette]] or [[https://tlverse.org/tlverse-handbook/origami.html][detailed chapter on using origami from the tlverse handbook]]
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
@@ -388,7 +336,7 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
 #+END_SRC
 
 \subsubsection{Estimators for Nuisance Parameters}
-TMLE requires initial estimation of some parts of the observed data distribution; for continuous-time TMLE of survival and absolute risks, we require estimates of the treatment propensity score and conditional hazards for each event and censoring type. The `formatArguments(Model = )` argument is how `concrete` accepts estimator specifications for estimating these nuisance parameters. Inputs into the `Model` argument must be named lists with one entry for the 'Treatment' variable, and for each of the event type (and censoring). The list element corresponding to the 'Treatment' variable must be named as the variable name, and the list elements corresponding to each event type must be named as the numeric value of the event type (with "0" being reserved for censoring). If no input is provided for the `Model` argument but appropriate arguments specifying the data and target estimands are supplied, then `formatArguments` will return a correctly formatted list containing default estimator specifications for each nuisance parameter, which can be then augmented.
+TMLE requires initial estimation of some parts of the observed data distribution; for continuous-time TMLE of survival and absolute risks, we require estimates of the treatment propensity score and conditional hazards for each event and censoring type. The `formatArguments(Model = )` argument is how \CRANpkg{concrete} accepts estimator specifications for estimating these nuisance parameters. Inputs into the `Model` argument must be named lists with one entry for the 'Treatment' variable, and for each of the event type (and censoring). The list element corresponding to the 'Treatment' variable must be named as the variable name, and the list elements corresponding to each event type must be named as the numeric value of the event type (with "0" being reserved for censoring). If no input is provided for the `Model` argument but appropriate arguments specifying the data and target estimands are supplied, then `formatArguments` will return a correctly formatted list containing default estimator specifications for each nuisance parameter, which can be then augmented.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
@@ -413,15 +361,15 @@ str(ConcreteArgs[["Model"]], give.attr = FALSE)
 #+END_SRC
 
 \paragraph{Estimating Treatment Propensity}
-Propensity scores for treatment assignment are estimated using the Superlearner stacked ensemble machine learning algorithm, using either the `SuperLearner` package (PropScoreBackend = "Superlearner") or the `sl3` package (PropScoreBackend = "sl3").  If using formatArguments(PropScoreBackend = "SuperLearner), `concrete`  passes the 'Model' specification for the treatment variable into SuperLearner(SL.library = ). In the next section we illustrate how to specify treatment models using the "SuperLearner" backend, but detailed instructions for how to specify models using *SuperLearner* can be found in the [[https://cran.r-project.org/web/packages/SuperLearner/vignettes/Guide-to-SuperLearner.html][package vignette]].
+Propensity scores for treatment assignment are estimated using the Superlearner stacked ensemble machine learning algorithm, using either the `SuperLearner` package (PropScoreBackend = "Superlearner") or the `sl3` package (PropScoreBackend = "sl3").  If using formatArguments(PropScoreBackend = "SuperLearner), \CRANpkg{concrete}  passes the 'Model' specification for the treatment variable into SuperLearner(SL.library = ). In the next section we illustrate how to specify treatment models using the "SuperLearner" backend, but detailed instructions for how to specify models using *SuperLearner* can be found in the [[https://cran.r-project.org/web/packages/SuperLearner/vignettes/Guide-to-SuperLearner.html][package vignette]].
 
-Alternatively, if `PropScoreBackend` is set to "sl3" then `concrete` uses the `sl3::Lrnr_sl' object to estimate the treatment propenity score . Below we show a simple example of using `sl3` to estimate propensity scores for `concrete`, but  [[https://tlverse.org/tlverse-handbook/sl3.html][Chapter 6 in the tlverse handbook]] provides an in depth explanation for how to specify a Super learner using `sl3`.
+Alternatively, if `PropScoreBackend` is set to "sl3" then \CRANpkg{concrete} uses the `sl3::Lrnr_sl' object to estimate the treatment propenity score . Below we show a simple example of using `sl3` to estimate propensity scores for \CRANpkg{concrete}, but  [[https://tlverse.org/tlverse-handbook/sl3.html][Chapter 6 in the tlverse handbook]] provides an in depth explanation for how to specify a Super learner using `sl3`.
 
 The default model specification for estimating treatment propensity is with SuperLearner using a library consisting of "xgboost" and "glmnet".
 
 \subsubsection{Estimating Event and Censoring Hazards}
 
-For estimating the necessary conditional hazards, `concrete` currently relies on a discrete Superlearner consisting of a library of Cox models implemented by `survival::coxph()` evaluated on cross-validated pseuo-likelihood loss. Examples of how to specify models for estimating conditional hazards with `concrete` are shown below. Support for estimation of hazards using Poisson-HAL or other methods may be added in the future, but currently the `HazEstBackend` argument must be "coxph". The default Cox specifications are a treatment-only model and a main-terms model with treatment and all covariates.  
+For estimating the necessary conditional hazards, \CRANpkg{concrete} currently relies on a discrete Superlearner consisting of a library of Cox models implemented by `survival::coxph()` evaluated on cross-validated pseuo-likelihood loss. Examples of how to specify models for estimating conditional hazards with \CRANpkg{concrete} are shown below. Support for estimation of hazards using Poisson-HAL or other methods may be added in the future, but currently the `HazEstBackend` argument must be "coxph". The default Cox specifications are a treatment-only model and a main-terms model with treatment and all covariates.  
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
@@ -481,6 +429,9 @@ ConcreteArgs <- formatArguments(ConcreteArgs)
 #+END_SRC
 
 ** {doConcrete}
+:PROPERTIES: 
+:CUSTOM_ID: doConcrete
+:END:
 Once `formatArguments()` runs without errors, the resulting object of class `ConcreteArgs` should be a suitable input into the function `doConcrete()` which should return the desired targeted estimates without any further user interaction. The resulting object contains TMLE point estimates and influence curves for the cause-specific absolute risks for each targeted event at each targeted time. If `GComp` is true, then the object will also contain the g-computation plug-in estimates for the targeted risks.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
@@ -814,7 +765,9 @@ where
 The default value of $\epsilon$ in the software is 0.1, and the algorithm stops at $\epsilon_i$ when
 \[\mathbb{P}_n D^*(\Hat \lambda_{\epsilon_i}, \Hat \g, \Hat S_c)(O) \leq \frac{\sqrt{\mathbb{P}_n \;D^*(\Hat \lambda_{\epsilon_i}, \Hat \g, \Hat S_c)(O)^2}}{\sqrt{n} \, \log(n)}\]
 
-bibliography:main.bib
+\newpage
+
+\bibliography{main.bib}
 
 
 * Config                                                           :noexport:
@@ -827,21 +780,31 @@ bibliography:main.bib
 #+BIND: org-latex-title-command ""
 #+PROPERTY: session *R*
 #+PROPERTY: cache yes
-#+LaTeX_HEADER:\usepackage{RJournal}
-#+LaTeX_HEADER:\usepackage{blindtext}
 #+LaTeX_HEADER:\usepackage[utf8]{inputenc}
-#+LaTeX_HEADER:\usepackage{xcolor}
 #+LaTeX_HEADER:\usepackage[T1]{fontenc}
+#+LaTeX_HEADER:\usepackage{RJournal}
 #+LaTeX_HEADER:\usepackage{amsmath,amssymb,array}
 #+LaTeX_HEADER:\usepackage{booktabs}
-#+LaTeX_HEADER:\usepackage{natbib}
+
+# %% necessary header info for RJournal.sty
+#+LaTeX_HEADER:\sectionhead{Contributed research article}
+#+LaTeX_HEADER:\volume{XX}
+#+LaTeX_HEADER:\volnumber{ZZ}
+#+LaTeX_HEADER:\year{20YY}
+#+LaTeX_HEADER:\month{MM}
+
+# %% load any required packages FOLLOWING this line
+#+LaTeX_HEADER:\usepackage{blindtext}
+#+LaTeX_HEADER:\usepackage{xcolor}
 #+LaTeX_HEADER:\usepackage{listings}
 #+LaTeX_HEADER:\usepackage{hyperref}
-#+LaTeX_HEADER:\hypersetup{colorlinks=true, linkcolor=blue, filecolor=magenta, urlcolor=cyan, pdftitle={Overleaf Example}, pdfpagemode=FullScreen}
-#+LaTeX_HEADER:\newcommand{\J}{\ensuremath{J}}
-#+LaTeX_HEADER:\newcommand{\1}{\ensuremath{\mathbf{1}}}
+#+LaTeX_HEADER:\hypersetup{colorlinks=true, linkcolor=blue, filecolor=magenta, urlcolor=cyan}
+
+# %% define any new/renew commands FOLLOWING this line
 #+LaTeX_HEADER:\DeclareMathOperator*{\argmax}{argmax}
 #+LaTeX_HEADER:\DeclareMathOperator*{\argmin}{argmin}
+#+LaTeX_HEADER:\newcommand{\J}{\ensuremath{J}}
+#+LaTeX_HEADER:\newcommand{\1}{\ensuremath{\mathbf{1}}}
 #+LaTeX_HEADER:\newcommand{\h}{\ensuremath{\lambda}}
 #+LaTeX_HEADER:\newcommand{\indep}{\ensuremath{\perp\hspace*{-1.4ex}\perp}}
 #+LaTeX_HEADER:\newcommand{\T}{\ensuremath{\widetilde{T}}}
@@ -859,6 +822,7 @@ bibliography:main.bib
 #+LaTeX_HEADER:\newcommand{\tKi}{\ensuremath{k}}
 #+LaTeX_HEADER:\newcommand{\TK}{\ensuremath{\mathcal{T}}}
 #+LaTeX_HEADER:\newcommand{\g}{\ensuremath{\pi}}
-#+LaTeX_HEADER:\setcounter{secnumdepth}{4}
 #+LaTeX_HEADER:\renewcommand{\L}{\ensuremath{W}}
 #+LaTeX_HEADER:\renewcommand{\l}{\ensuremath{w}}
+#+LaTeX_HEADER:\setcounter{secnumdepth}{4}
+

@@ -18,3 +18,5 @@ worg/main.log
 worg/main.pdf
 
 worg/main.synctex.gz
+
+*.tex#
