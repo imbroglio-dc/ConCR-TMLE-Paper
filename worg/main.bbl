@@ -1,14 +1,158 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{19}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem[Rytgaard and van~der Laan(2021)]{rytgaard2021one}
-H.~C. Rytgaard and M.~J. van~der Laan.
-\newblock One-step tmle to target cause-specific absolute risks and survival
-  curves.
-\newblock \emph{arXiv e-prints}, pages arXiv--2107, 2021.
+\bibitem[Benkeser and Hejazi(2019)]{benkeser_survtmle_2019}
+D.~Benkeser and N.~Hejazi.
+\newblock survtmle: {Compute} {Targeted} {Minimum} {Loss}-{Based} {Estimates}
+  in {Right}-{Censored} {Survival} {Settings}, Apr. 2019.
+\newblock URL \url{https://CRAN.R-project.org/package=survtmle}.
+
+\bibitem[Benkeser and Van Der~Laan(2016)]{benkeser_highly_2016}
+D.~Benkeser and M.~Van Der~Laan.
+\newblock The {Highly} {Adaptive} {Lasso} {Estimator}.
+\newblock In \emph{2016 {IEEE} {International} {Conference} on {Data} {Science}
+  and {Advanced} {Analytics} ({DSAA})}, pages 689--696, Oct. 2016.
+\newblock \doi{10.1109/DSAA.2016.93}.
+\newblock ISSN: null.
+
+\bibitem[Bickel et~al.(1998)Bickel, Klaassen, Ritov, and
+  Wellner]{bickel_efficient_1998}
+P.~J. Bickel, C.~A.~J. Klaassen, Y.~Ritov, and J.~A. Wellner.
+\newblock \emph{Efficient and {Adaptive} {Estimation} for {Semiparametric}
+  {Models}}.
+\newblock Springer-Verlag, New York, 1998.
+\newblock ISBN 978-0-387-98473-5.
+
+\bibitem[Denz et~al.(2022)Denz, Klaaßen-Mielke, and
+  Timmesfeld]{denz_comparison_2022}
+R.~Denz, R.~Klaaßen-Mielke, and N.~Timmesfeld.
+\newblock A {Comparison} of {Different} {Methods} to {Adjust} {Survival}
+  {Curves} for {Confounders}, Mar. 2022.
+\newblock URL \url{http://arxiv.org/abs/2203.10002}.
+\newblock Number: arXiv:2203.10002 arXiv:2203.10002 [stat].
+
+\bibitem[Gerds et~al.(2022)Gerds, Ohlendorff, Blanche, Mortensen, Wright,
+  Tollenaar, Muschelli, Mogensen, and Ozenne]{gerds_riskregression_2022}
+T.~A. Gerds, J.~S. Ohlendorff, P.~Blanche, R.~Mortensen, M.~Wright,
+  N.~Tollenaar, J.~Muschelli, U.~B. Mogensen, and B.~Ozenne.
+\newblock {riskRegression}: {Risk} {Regression} {Models} and {Prediction}
+  {Scores} for {Survival} {Analysis} with {Competing} {Risks}, Sept. 2022.
+\newblock URL \url{https://CRAN.R-project.org/package=riskRegression}.
+
+\bibitem[Laan(2006)]{laan_statistical_2006}
+M.~J. v.~d. Laan.
+\newblock Statistical {Inference} for {Variable} {Importance}.
+\newblock \emph{The International Journal of Biostatistics}, 2\penalty0 (1),
+  Feb. 2006.
+\newblock ISSN 1557-4679.
+\newblock \doi{10.2202/1557-4679.1008}.
+\newblock URL
+  \url{https://www.degruyter.com/document/doi/10.2202/1557-4679.1008/html?lang=en}.
+\newblock Publisher: De Gruyter.
+
+\bibitem[Laan(2017)]{laan_generally_2017}
+M.~J. v.~d. Laan.
+\newblock A {Generally} {Efficient} {Targeted} {Minimum} {Loss} {Based}
+  {Estimator} based on the {Highly} {Adaptive} {Lasso}.
+\newblock \emph{The International Journal of Biostatistics}, 13\penalty0 (2),
+  Oct. 2017.
+\newblock \doi{10.1515/ijb-2015-0097}.
+
+\bibitem[Laan and Dudoit(2003)]{laan_unified_2003}
+M.~J. v.~d. Laan and S.~Dudoit.
+\newblock Unified {Cross}-{Validation} {Methodology} {For} {Selection} {Among}
+  {Estimators} and a {General} {Cross}-{Validated} {Adaptive} {Epsilon}-{Net}
+  {Estimator}: {Finite} {Sample} {Oracle} {Inequalities} and {Examples}.
+\newblock \emph{U.C. Berkeley Division of Biostatistics Working Paper Series},
+  Nov. 2003.
+
+\bibitem[Laan and Rose(2011)]{laan_targeted_2011}
+M.~J. v.~d. Laan and S.~Rose.
+\newblock \emph{Targeted {Learning}: {Causal} {Inference} for {Observational}
+  and {Experimental} {Data}}.
+\newblock Springer {Series} in {Statistics}. Springer-Verlag, New York, 2011.
+\newblock ISBN 978-1-4419-9781-4.
+\newblock \doi{10.1007/978-1-4419-9782-1}.
+
+\bibitem[Laan et~al.(2007)Laan, Polley, and Hubbard]{laan_super_2007}
+M.~J. v.~d. Laan, E.~C. Polley, and A.~E. Hubbard.
+\newblock Super {Learner}.
+\newblock \emph{Statistical Applications in Genetics and Molecular Biology},
+  6\penalty0 (1), Sept. 2007.
+\newblock ISSN 1544-6115, 2194-6302.
+\newblock \doi{10.2202/1544-6115.1309}.
+
+\bibitem[Petersen and van~der Laan(2014)]{petersen_causal_2014}
+M.~L. Petersen and M.~J. van~der Laan.
+\newblock Causal models and learning from data: integrating causal modeling and
+  statistical estimation.
+\newblock \emph{Epidemiology (Cambridge, Mass.)}, 25\penalty0 (3):\penalty0
+  418--426, May 2014.
+\newblock ISSN 1531-5487.
+\newblock \doi{10.1097/EDE.0000000000000078}.
+
+\bibitem[Polley et~al.(2021)Polley, LeDell, Kennedy, Lendle, and
+  Laan]{polley_superlearner_2021}
+E.~Polley, E.~LeDell, C.~Kennedy, S.~Lendle, and M.~v.~d. Laan.
+\newblock {SuperLearner}: {Super} {Learner} {Prediction}, May 2021.
+\newblock URL \url{https://CRAN.R-project.org/package=SuperLearner}.
+
+\bibitem[Rytgaard et~al.(2021)Rytgaard, Gerds, and van~der
+  Laan]{rytgaard_continuous-time_2021}
+H.~C. Rytgaard, T.~A. Gerds, and M.~J. van~der Laan.
+\newblock Continuous-time targeted minimum loss-based estimation of
+  intervention-specific mean outcomes.
+\newblock \emph{arXiv:2105.02088 [math, stat]}, May 2021.
+\newblock URL \url{http://arxiv.org/abs/2105.02088}.
+\newblock arXiv: 2105.02088.
+
+\bibitem[Rytgaard and van~der Laan(2021)]{rytgaard_one-step_2021}
+H.~C.~W. Rytgaard and M.~J. van~der Laan.
+\newblock One-step {TMLE} for targeting cause-specific absolute risks and
+  survival curves.
+\newblock \emph{arXiv:2107.01537 [stat]}, Sept. 2021.
+\newblock URL \url{http://arxiv.org/abs/2107.01537}.
+\newblock arXiv: 2107.01537 version: 2.
+
+\bibitem[Schwab et~al.(2020)Schwab, Lendle, Petersen, Laan, and
+  Gruber]{schwab_ltmle_2020}
+J.~Schwab, S.~Lendle, M.~Petersen, M.~v.~d. Laan, and S.~Gruber.
+\newblock ltmle: {Longitudinal} {Targeted} {Maximum} {Likelihood} {Estimation},
+  Mar. 2020.
+\newblock URL \url{https://CRAN.R-project.org/package=ltmle}.
+
+\bibitem[Sofrygin et~al.(2017)Sofrygin, Laan, and
+  Neugebauer]{sofrygin_stremr_2017}
+O.~Sofrygin, M.~J. v.~d. Laan, and R.~Neugebauer.
+\newblock stremr: {Streamlined} {Estimation} of {Survival} for {Static},
+  {Dynamic} and {Stochastic} {Treatment} and {Monitoring} {Regimes}, Jan. 2017.
+\newblock URL \url{https://CRAN.R-project.org/package=stremr}.
+
+\bibitem[Vaart et~al.(2006)Vaart, Dudoit, and Laan]{vaart_oracle_2006}
+A.~W. v.~d. Vaart, S.~Dudoit, and M.~J. v.~d. Laan.
+\newblock Oracle inequalities for multi-fold cross validation.
+\newblock \emph{Statistics \& Decisions}, 24\penalty0 (3), Jan. 2006.
+\newblock ISSN 0721-2631.
+\newblock \doi{10.1524/stnd.2006.24.3.351}.
+
+\bibitem[Wallace et~al.(2020)Wallace, Moodie, Stephens, and
+  Schulz]{wallace_dtrreg_2020}
+M.~Wallace, E.~E.~M. Moodie, D.~A. Stephens, and G.~S. a.~J. Schulz.
+\newblock {DTRreg}: {DTR} {Estimation} and {Inference} via {G}-{Estimation},
+  {Dynamic} {WOLS}, {Q}-{Learning}, and {Dynamic} {Weighted} {Survival}
+  {Modeling} ({DWSurv}), Sept. 2020.
+\newblock URL \url{https://CRAN.R-project.org/package=DTRreg}.
+
+\bibitem[Westling et~al.(2021)Westling, Luedtke, Gilbert, and
+  Carone]{westling_inference_2021}
+T.~Westling, A.~Luedtke, P.~Gilbert, and M.~Carone.
+\newblock Inference for treatment-specific survival curves using machine
+  learning, June 2021.
+\newblock URL \url{http://arxiv.org/abs/2106.06602}.
+\newblock Number: arXiv:2106.06602 arXiv:2106.06602 [stat].
 
 \end{thebibliography}
