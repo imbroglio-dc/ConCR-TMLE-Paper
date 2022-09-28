@@ -6,7 +6,7 @@
 
 #+begin_export latex
 \abstract{
-Recently targeted maximum likelihood-based estimation (TMLE) has been used to develop estimators of survival curve derived parameters for time-to-event data. The single timepoint continuous-time survival TMLE method is implemented in the \CRANpkg{concrete} package for `R`. \CRANpkg{concrete} provides methods to estimate intervention and cause-specific absolute risks as well as contrastive parameters such as risk differences and risk ratios. The package allows the risks of multiple causes to be jointly targeted in the case of competing risks, at multiple time points and in the presence of right-censoring. In this paper we describe and illustrate the usage of the \CRANpkg{concrete} package.
+Recently targeted maximum likelihood-based estimation (TMLE) has been used to develop estimators of absolute risk for time-to-event outcomes in continuous-time. The single timepoint continuous-time survival TMLE method is implemented in the \CRANpkg{concrete} package for `R`. \CRANpkg{concrete} provides methods to estimate intervention and cause-specific absolute risks as well as contrastive parameters such as risk differences and risk ratios. The package allows the risks of multiple causes to be jointly targeted in the case of competing risks, at multiple time points and in the presence of right-censoring. In this paper we describe and illustrate the usage of the \CRANpkg{concrete} package.
 }
 #+end_export
 
@@ -17,11 +17,11 @@ Recently targeted maximum likelihood-based estimation (TMLE) has been used to de
 
 ** what concrete is
 
-The R package \CRANpkg{concrete} answers causal questions with time-to-event outcomes in continous time. It implements the TMLE method developed in cite:rytgaard_one-step_2021 to estimate time-point specific average treatment effects and returns absolute t-year risks as well as differences and ratios of absolute \(t\)-year risks with asymptotic inference based on the efficient influence curve (cite:bickel_efficient_1998).
+The R package \CRANpkg{concrete} answers causal questions with time-to-event outcomes in continous time. It implements the TMLE method developed in cite:rytgaard_one-step_2021 to estimate time-point specific average treatment effects and returns absolute t-year risks as well as differences and ratios of absolute \(t\)-year risks with asymptotic inference based on the efficient influence curve (cite:laan_unified_2003-1).
 
 ** what is in this manuscript
 
-We write for readers looking for a hands-on introduction to the one-step TMLE for
+We write for readers looking for a hands-on introduction to the one-step TMLE method for
 continuous time survival analysis described in cite:rytgaard_one-step_2021 as well as to readers
 who want to use our package for their own analyses.
 
@@ -42,7 +42,14 @@ The \ctv{Causal Inference} CRAN Task View shows only \CRANpkg{riskregression} (c
 * Concepts
 
 ** The Targeted Learning Roadmap
-When we analyze data and make predictions to guide future actions, we are in essence asking causal questions. The formal causal inference frameworks developed in recent decades allow us to make this process rigorous; a systematic roadmap cite:petersen_causal_2014 integrates causal modeling with statistical estimation into a cohesive causal inference workflow. At a high level this targeted learning roadmap consists of three steps: defining the causal model and estimand, defining the observed statistical model and establishing the requirements for identifying the causal estimand with a statistical estimand, and estimating the statistical estimand using an estimator with desirable properites such as consistency and efficiency.
+# make specific for survival
+When we analyze survival data and make predictions to guide future actions, we are in essence asking causal questions. The formal causal inference frameworks developed in recent decades allow us to make this process rigorous; a systematic roadmap cite:petersen_causal_2014 integrates causal modeling with statistical estimation into a cohesive causal inference workflow.
+
+Specifically for our continuous survival case, the targeted learning roadmap consists of three steps: defining a time zero, the event or events of interest, time horizon, specifying the desired intervention
+
+identifying confounders, and right-censoring
+
+At a high level this targeted learning roadmap consists of three steps: defining the causal model and estimand, defining the observed statistical model and establishing the requirements for identifying the causal estimand with a statistical estimand, and estimating the statistical estimand using an estimator with desirable properites such as consistency and efficiency.
 
 ** The Causal Model: Counterfactuals, Interventions, and Causal Estimands
 With time-to-event data, the essential counterfactual outcome is the time until some event or events occur to some subjects if they were intervened upon in some way. Let $A$ represent this intervention variable, which could take on values that are binary (such as with a 2-armed trial), multinomial, or even continuous. Interventions on this variable can take different forms; the simplest is setting the variable to a constant value $a$ in the range of $A$, a so-called a static treatment. Alternatively the intervention could be a function $d$, maybe specifying a dynamic treatment with a deterministic function incorporating baseline covariates $\L$, \(d(\L)\), or maybe specifying a stochastic treatment with a probabilistic function that could even depend on the treatment variable, \(d(A, \L)\). Whatever the desired intervention may be, if we let $d$ represent this intervention of interest, then for $J$ events of interest we can define the counterfactual time-to-event variables $T^d_j \,,\; j = 1, ..., J$, representing the time until event $j$ happens if subjects were intervened upon following rule $d$. With this we can write the generic form of time-to-event counterfactual data with $J$ target events, baseline covariates $L$ and intervention rule $d$ determining the value of intervention variable $A$.
@@ -234,7 +241,7 @@ The \code{.[["Data"]]} element is pinned with the \code{EventTime= }, \code{Even
 :CUSTOM_ID: TreatmentRegime
 :END:
 
-With time-to-event data, the essential counterfactual outcome is the time until some event or events occur to some subjects if they were intervened upon in some way. Let $A$ represent this intervention variable, which could be binary as with 2-armed trials, multinomial, or even continuous. Interventions on this variable can take on different forms; the simplest is setting the variable to a constant value $a$ in the range of $A$, a so-called static regime. Alternatively the intervention could be a function $d$, perhaps specifying a dynamic treatment using a deterministic function of baseline covariates $\L$, $d(\L)$, or even stochastic treatments using a probabilistic function that could depend on the treatment variable as well as covariates, $d(A, \L). Let $d$ be some desired intervention. Then for $J$ events of interest we can define the counterfactual time-to-event variables $T^d_j \,,\; j = 1, ..., J$, representing the time until event $j$ happens if subjects were intervened upon following rule $d$. With this we can write the generic form of time-to-event counterfactual data with $J$ target events, baseline covariates $L$ and intervention rule $d$ determining the value of intervention variable $A$.
+With time-to-event data, the essential counterfactual outcome is the time until some event or events occur to some subjects if they were intervened upon in some way. Let $A$ represent this intervention variable, which could be binary as with 2-armed trials, multinomial, or even continuous. Interventions on this variable can take on different forms; the simplest is setting the variable to a constant value $a$ in the range of $A$, a so-called static regime. Alternatively the intervention could be a function $d$, perhaps specifying a dynamic treatment using a deterministic function of baseline covariates $\L$, $d(\L)$, or even stochastic treatments using a probabilistic function that could depend on the treatment variable as well as covariates, \(d(A, \L)\). Let $d$ be some desired intervention. Then for $J$ events of interest we can define the counterfactual time-to-event variables $T^d_j \,,\; j = 1, ..., J$, representing the time until event $j$ happens if subjects were intervened upon following rule $d$. With this we can write the generic form of time-to-event counterfactual data with $J$ target events, baseline covariates $L$ and intervention rule $d$ determining the value of intervention variable $A$.
 \[ X = \left( T^d_j, \L \,:\; j \in 1, \dots, J \right)\]
 
 For a concrete example, take the simple case of the 2-armed PBC trial where researchers wanted to know the effect of d-Penicillamine compared to placebo on the time until subjects either die or receive a liver transplant. The ideal, albeit physically impossible study would have been to:
@@ -489,7 +496,6 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
 
 ConcreteArgs <- formatArguments(ConcreteArgs)
 #+END_SRC
-
 
 ** doConcrete
 :PROPERTIES: 

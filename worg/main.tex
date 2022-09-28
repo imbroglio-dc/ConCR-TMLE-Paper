@@ -1,4 +1,4 @@
-% Created 2022-09-26 Mon 21:42
+% Created 2022-09-27 Tue 20:27
 % Intended LaTeX compiler: pdflatex
 \documentclass{report}
                               \usepackage[utf8]{inputenc}
@@ -77,25 +77,25 @@ basewidth={0.5em,0.4em},
 \maketitle
 
 \abstract{
-Recently targeted maximum likelihood-based estimation (TMLE) has been used to develop estimators of survival curve derived parameters for time-to-event data. The single timepoint continuous-time survival TMLE method is implemented in the \CRANpkg{concrete} package for `R`. \CRANpkg{concrete} provides methods to estimate intervention and cause-specific absolute risks as well as contrastive parameters such as risk differences and risk ratios. The package allows the risks of multiple causes to be jointly targeted in the case of competing risks, at multiple time points and in the presence of right-censoring. In this paper we describe and illustrate the usage of the \CRANpkg{concrete} package.
+Recently targeted maximum likelihood-based estimation (TMLE) has been used to develop estimators of absolute risk for time-to-event outcomes in continuous-time. The single timepoint continuous-time survival TMLE method is implemented in the \CRANpkg{concrete} package for `R`. \CRANpkg{concrete} provides methods to estimate intervention and cause-specific absolute risks as well as contrastive parameters such as risk differences and risk ratios. The package allows the risks of multiple causes to be jointly targeted in the case of competing risks, at multiple time points and in the presence of right-censoring. In this paper we describe and illustrate the usage of the \CRANpkg{concrete} package.
 }
 
 \section{Introduction}
 \label{intro}
 \subsection{what concrete is}
-\label{sec:orgc1aae34}
+\label{sec:org9fc20ac}
 
-The R package \CRANpkg{concrete} answers causal questions with time-to-event outcomes in continous time. It implements the TMLE method developed in \cite{rytgaard_one-step_2021} to estimate time-point specific average treatment effects and returns absolute t-year risks as well as differences and ratios of absolute \(t\)-year risks with asymptotic inference based on the efficient influence curve (\cite{bickel_efficient_1998}).
+The R package \CRANpkg{concrete} answers causal questions with time-to-event outcomes in continous time. It implements the TMLE method developed in \cite{rytgaard_one-step_2021} to estimate time-point specific average treatment effects and returns absolute t-year risks as well as differences and ratios of absolute \(t\)-year risks with asymptotic inference based on the efficient influence curve (\cite{laan_unified_2003-1}).
 
 \subsection{what is in this manuscript}
-\label{sec:org04e2d45}
+\label{sec:org17ad40f}
 
-We write for readers looking for a hands-on introduction to the one-step TMLE for
+We write for readers looking for a hands-on introduction to the one-step TMLE method for
 continuous time survival analysis described in \cite{rytgaard_one-step_2021} as well as to readers
 who want to use our package for their own analyses.
 
 \subsection{what concrete does and does not do}
-\label{sec:org0732428}
+\label{sec:org1a69176}
 The package can be used for targeted estimation of estimands derived from cause-specific absolute risks (e.g. relative risks and risk differences) under static and dynamic binary treatments given at baseline. It deals with baseline covariate confounding, right censoring and competing risks.
 
 The package cannot (yet) analyse multiple treatments, continuous or multinomial treatments, or stochastic interventions. Methods to account for paired or clustered data is not yet supported, nor is support for time-dependent treatments (e.g. drop-in) and time-dependent confounding.
@@ -103,7 +103,7 @@ The package cannot (yet) analyse multiple treatments, continuous or multinomial 
 This package is not meant to be used for left trunctation (i.e. delayed entry) or interval censored data, 
 
 \subsection{how it relates to other peoples work}
-\label{sec:org766121b}
+\label{sec:org7594453}
 
 The \CRANpkg{ltmle} (\cite{schwab_ltmle_2020}), \CRANpkg{stremr} (\cite{sofrygin_stremr_2017}), and \CRANpkg{survtmle} (\cite{benkeser_survtmle_2019}) TMLE implementations either natively or can be adapted to estimate absolute risks of right-censored survival outcomes; \CRANpkg{ltmle} and \CRANpkg{stremr} use the method of iterated expectations while \CRANpkg{survtmle} can target the hazard-based survival formulation. Notably, these packages all operate in discrete time and thus requires discretization of continuous-time data. Poorly specified discretization can introduce bias and inflate the variance of estimators and no definitive best practices have yet been established, leading to ad-hoc choices that make unknown trade offs between bias and loss of efficiency. Analyzing continuous-time survival data using a continuous-time method avoids this hurdle entirely; \CRANpkg{concrete} will be the first R package implementing TMLE for continuous-time survival.
 
@@ -111,14 +111,20 @@ The \ctv{Causal Inference} CRAN Task View shows only \CRANpkg{riskregression} (\
 
 
 \section{Concepts}
-\label{sec:org7e113a3}
+\label{sec:org37a21dd}
 
 \subsection{The Targeted Learning Roadmap}
-\label{sec:org7ce2d98}
-When we analyze data and make predictions to guide future actions, we are in essence asking causal questions. The formal causal inference frameworks developed in recent decades allow us to make this process rigorous; a systematic roadmap \cite{petersen_causal_2014} integrates causal modeling with statistical estimation into a cohesive causal inference workflow. At a high level this targeted learning roadmap consists of three steps: defining the causal model and estimand, defining the observed statistical model and establishing the requirements for identifying the causal estimand with a statistical estimand, and estimating the statistical estimand using an estimator with desirable properites such as consistency and efficiency.
+\label{sec:org4f6bf8c}
+When we analyze survival data and make predictions to guide future actions, we are in essence asking causal questions. The formal causal inference frameworks developed in recent decades allow us to make this process rigorous; a systematic roadmap \cite{petersen_causal_2014} integrates causal modeling with statistical estimation into a cohesive causal inference workflow.
+
+Specifically for our continuous survival case, the targeted learning roadmap consists of three steps: defining a time zero, the event or events of interest, time horizon, specifying the desired intervention
+
+identifying confounders, and right-censoring
+
+At a high level this targeted learning roadmap consists of three steps: defining the causal model and estimand, defining the observed statistical model and establishing the requirements for identifying the causal estimand with a statistical estimand, and estimating the statistical estimand using an estimator with desirable properites such as consistency and efficiency.
 
 \subsection{The Causal Model: Counterfactuals, Interventions, and Causal Estimands}
-\label{sec:orgd100942}
+\label{sec:org677340c}
 With time-to-event data, the essential counterfactual outcome is the time until some event or events occur to some subjects if they were intervened upon in some way. Let \(A\) represent this intervention variable, which could take on values that are binary (such as with a 2-armed trial), multinomial, or even continuous. Interventions on this variable can take different forms; the simplest is setting the variable to a constant value \(a\) in the range of \(A\), a so-called a static treatment. Alternatively the intervention could be a function \(d\), maybe specifying a dynamic treatment with a deterministic function incorporating baseline covariates \(\L\), \(d(\L)\), or maybe specifying a stochastic treatment with a probabilistic function that could even depend on the treatment variable, \(d(A, \L)\). Whatever the desired intervention may be, if we let \(d\) represent this intervention of interest, then for \(J\) events of interest we can define the counterfactual time-to-event variables \(T^d_j \,,\; j = 1, ..., J\), representing the time until event \(j\) happens if subjects were intervened upon following rule \(d\). With this we can write the generic form of time-to-event counterfactual data with \(J\) target events, baseline covariates \(L\) and intervention rule \(d\) determining the value of intervention variable \(A\).
 \[ X = \left( T^d_j, \L \,:\; j \in 1, \dots, J \right)\]
 
@@ -161,7 +167,7 @@ However when subjects are susceptible to multiple mutually exclusive events of i
 Given a set of assumptions, namely 1) consistency, 2) positivity for treatments and remaining uncensored, 3) no unmeasured confounding, and 4) coarsening at random on the censoring process, causal survival and risk estimands are identified by statistical estimand counterparts which are purely functions of the observed data. These identification assumptions, formally stated in detail in Appendix \ref{identification}, make explicit the necessary untestable assumptions about the causal model which has produced the observed data for statistical quantities to have causal interpretations. If on the other hand, one does not believe the identification assumptions hold, then these statistical estimands still have an interpretation as standardized risks isolating the importance of the "treatment" variable (\cite{laan_statistical_2006}).  
 
 \subsection{Estimation}
-\label{sec:org49a5a12}
+\label{sec:org6c604c9}
 \CRANpkg{concrete} implements the one-step TMLE for right-censored survival and competing risks in continuous time described by \cite{rytgaard_continuous-time_2021} and \cite{rytgaard_one-step_2021}. TMLE (\cite{laan_statistical_2006}, \cite{laan_targeted_2011}) is a general methodology for constructing semi-parametric efficient substitution estimators consisting of two broad steps: first an initial estimation of nuisance parameters utilizing flexible machine learning and second a targeted update of the initial estimators to solve the efficient influence function of the target statistical estimand. TMLE estimators given certain conditions are efficient regular asymptotically linear estimators and thus are consistent with asymptotically minimal variance and, being substitution estimators, respect global constraints on target parameters such as monotonicity and being bounded between \([0, 1]\) for survival curves.
 
 For TMLE to have its desirable properties, the initial estimation stage must converge adequately quickly; to this end, we employ a flexible machine learning ensemble with oracle guarantees (\cite{laan_super_2007}, \cite{polley_superlearner_2021}, \cite{laan_unified_2003}, \cite{vaart_oracle_2006}), particularly with a candidate library incorporating the highly adaptive lasso (HAL) as it converges at the required rate (\cite{laan_generally_2017}, \cite{benkeser_highly_2016}, \cite{rytgaard_continuous-time_2021}). 
@@ -183,7 +189,7 @@ where
 The clever covariate is a function of the {\color{blue}desired intervention density} which is user specified, the {\color{green!70!black} observed intervention densities} which are not changed by tmle targeting, and the {\color{red}outcome-related densities} which are updated by targeting.  
 
 \paragraph{TMLE one-step update}
-\label{sec:org1c87e44}
+\label{sec:orga56f00b}
 
 Let \(D^*\) be the vector of efficient influence functions
 \begin{align*}
@@ -301,7 +307,7 @@ The \code{.[["Data"]]} element is pinned with the \code{EventTime= }, \code{Even
 
 \paragraph{Treatment Regime}
 \label{TreatmentRegime}
-With time-to-event data, the essential counterfactual outcome is the time until some event or events occur to some subjects if they were intervened upon in some way. Let \(A\) represent this intervention variable, which could be binary as with 2-armed trials, multinomial, or even continuous. Interventions on this variable can take on different forms; the simplest is setting the variable to a constant value \(a\) in the range of \(A\), a so-called static regime. Alternatively the intervention could be a function \(d\), perhaps specifying a dynamic treatment using a deterministic function of baseline covariates \(\L\), \(d(\L)\), or even stochastic treatments using a probabilistic function that could depend on the treatment variable as well as covariates, \$d(A, \L). Let \(d\) be some desired intervention. Then for \(J\) events of interest we can define the counterfactual time-to-event variables \(T^d_j \,,\; j = 1, ..., J\), representing the time until event \(j\) happens if subjects were intervened upon following rule \(d\). With this we can write the generic form of time-to-event counterfactual data with \(J\) target events, baseline covariates \(L\) and intervention rule \(d\) determining the value of intervention variable \(A\).
+With time-to-event data, the essential counterfactual outcome is the time until some event or events occur to some subjects if they were intervened upon in some way. Let \(A\) represent this intervention variable, which could be binary as with 2-armed trials, multinomial, or even continuous. Interventions on this variable can take on different forms; the simplest is setting the variable to a constant value \(a\) in the range of \(A\), a so-called static regime. Alternatively the intervention could be a function \(d\), perhaps specifying a dynamic treatment using a deterministic function of baseline covariates \(\L\), \(d(\L)\), or even stochastic treatments using a probabilistic function that could depend on the treatment variable as well as covariates, \(d(A, \L)\). Let \(d\) be some desired intervention. Then for \(J\) events of interest we can define the counterfactual time-to-event variables \(T^d_j \,,\; j = 1, ..., J\), representing the time until event \(j\) happens if subjects were intervened upon following rule \(d\). With this we can write the generic form of time-to-event counterfactual data with \(J\) target events, baseline covariates \(L\) and intervention rule \(d\) determining the value of intervention variable \(A\).
 \[ X = \left( T^d_j, \L \,:\; j \in 1, \dots, J \right)\]
 
 For a concrete example, take the simple case of the 2-armed PBC trial where researchers wanted to know the effect of d-Penicillamine compared to placebo on the time until subjects either die or receive a liver transplant. The ideal, albeit physically impossible study would have been to:
@@ -512,7 +518,6 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
 ConcreteArgs <- formatArguments(ConcreteArgs)
 \end{lstlisting}
 
-
 \subsection{doConcrete}
 \label{doConcrete}
 Once \code{formatArguments()} runs without errors, the resulting object of class \code{"ConcreteArgs"} should be a suitable input into the function \code{doConcrete()} which should return the desired targeted estimates without any further user interaction. The resulting object contains TMLE point estimates and influence curves for the cause-specific absolute risks for each targeted event at each targeted time. If \code{GComp=TRUE}, then the object will also contain the result of using the Superlearner predictions as a plug-in g-formula estimate of the targeted risks.
@@ -546,32 +551,32 @@ distribution that must be estimated are \(\g(A \mid \X)\), \(S_c(t \AX)\),
 \(\lambda_j(t \AX)\), \(F_j(t \AX)\), and \(S(t \AX)\)
 
 \subsubsection{Cross-Validation Specification}
-\label{sec:org4b2e080}
+\label{sec:orgd123a56}
 Let \(Q_n = \{O_i\}_{i=1}^n\) be an observed sample of \(n\) i.i.d observations of \(O \sim P_0\). For \(V\text{-fold}\) cross validation, let \(B_n = \{1, ... , V\}^n\) be a random vector that assigns the \(n\) observations into \(V\) validation folds. For each \(v \in \{1, ..., V\}\) we then define training set \(Q^\mathcal{T}_v = \{O_i : B_n(i) = v\}\) with the corresponding validation set \(Q^\mathcal{V}_v = \{O_i : B_n(i) \neq v\}\).
 
 \subsubsection{Propensity Score Estimation}
-\label{sec:orgc6076f9}
+\label{sec:orge74a6c2}
 For the true conditional distribution of \(A\) given \(\X\), \(\g_0(\cdot \mid \X)\), and \(\Hat{\g} : Q_n \to \Hat{\g}(Q_n)\), let \(L_\g\) be a loss function such that the risk \(\mathbb{E}_0\left[L_\g(\Hat{\g}, O)\right]\) is minimized when \(\Hat{\g} = \g_0\). For instance, with a binary \(A\), we may specify the negative log loss \(L_\g(\Hat{\g}, O) = \text{-}\log\left(\Hat{\g}(1 \mid \X)^A \; \Hat{\g}(0 \mid \X))^{1-A}\right)\). We can then define the discrete superlearner selector which chooses from a set of candidate models \(\mathcal{M_\g}\) the candidate propensity score model that has minimal cross validated risk 
 \[ \Hat{\g}^{SL} = \argmin_{\Hat{\g} \in \mathcal{M}_\g} \sum_{v = 1}^{V} P_{Q^\mathcal{V}_v} \; L_\g(\Hat{\g}(Q^\mathcal{T}_v), Q^\mathcal{V}_v)\]
 
 This discrete superlearner model \(\Hat{\g}^{SL}\) is then fitted on the full observed data \(Q_n\) and used to estimate \(\g_0(A \mid \X)\)
 
 \subsubsection{Hazard Estimation}
-\label{sec:orga4333cc}
+\label{sec:orgf2df3cf}
 Let \(\lambda_{0,\,\delta}\) be the true censoring and cause-specific hazards when \(\delta = 0\) and \(\delta = 1, \dots, J\) respectively. Let \(\mathcal{M}_\delta\) for \(\delta = 0, \dots, J\) be the sets of candidate models, \(\{\Hat{\lambda}_\delta : Q_n \to \Hat{\lambda}_\delta(Q_n)\}\), for the censoring and cause-specific hazards and let \(L_\delta\) be loss functions such that the risks \(\mathbb{E}_0\left[L_\delta(\Hat{\lambda}_\delta, O)\right]\) are minimized when \(\Hat{\lambda}_\delta = \lambda_{0,\,\delta}\), for instance log likelihood loss. We can then define the discrete superlearner selectors for each \(\delta\) which choose from the set of candidate models \(\mathcal{M_\delta}\) the candidate propensity score model that has minimal cross validated risk 
 \[ \Hat{\lambda}_\delta^{SL} = \argmin_{\Hat{\lambda}_\delta \in \mathcal{M}_\delta} \sum_{v = 1}^{V} P_{Q^\mathcal{V}_v} \; L_\g(\Hat{\lambda}_\delta(Q^\mathcal{T}_v), Q^\mathcal{V}_v)\]
 
 These discrete superlearner selections \(\Hat{\lambda}_\delta^{SL}\) are then fitted on the full observed data \(Q_n\) and used to estimate \(\lambda_\delta(t \AX), \, F_\delta(t \AX),\, S(t \AX), \text{ and } S_c(t\text{-} \AX)\) for \(j = 1,\dots, J\).
 
 \subsubsection{Lagged Censoring Survival}
-\label{sec:orgbb5dd97}
+\label{sec:org677d22f}
 Let \(\mathcal{S}\) be the set containing all target and observed event times, ordered such that \(s_1 < s_2 < \dots s_{max}\). Then for all \(s_{\tK} \,\in\, \mathcal{S}\) we compute
 \begin{align*}
 \Hat{S}_c(s_{\tK}\text{-} \AX) &= \exp\left(\text{-} \int_{0}^{s_{\tK}\text{-}} \Hat\lambda^{SL}_c(s \AX) ds\right)\\
 \end{align*}
 
 \subsubsection{Cause-Specific Hazards, Event-Free Survival, and Cause-Specific Absolute Risks}
-\label{sec:org0fb6b1a}
+\label{sec:org32eb0b4}
 For \(\lj = 1,\dots,J\) and \(s_{\tK} \,\in\, \mathcal{S}\), the super learner selections \(\Hat\lambda_\lj^{SL}\) are fit on the full observed data \(Q_n\), and used to compute the event free survival
 \begin{align*}
 \Hat S(s_{\tK} \AX) &= \exp\left(\text{-} \int_{0}^{s_{\tK}} \sum_{\lj = 1}^{J} \Hat\lambda^{SL}_\lj(s \AX) ds\right)
@@ -580,7 +585,7 @@ For \(\lj = 1,\dots,J\) and \(s_{\tK} \,\in\, \mathcal{S}\), the super learner s
 \end{align*}
 
 \subsubsection{Computing the Efficient Influence Function}
-\label{sec:org949a457}
+\label{sec:org5354ac8}
 For each desired treatment regime \(\trt\), each target time \tk, and each target event \jj, the efficient influence functions for each individual are computed in parts.
 
 \begin{align*}
@@ -590,7 +595,7 @@ For each desired treatment regime \(\trt\), each target time \tk, and each targe
 \end{align*}
 
 \paragraph{Clever Covariate \(h_{\trt, \jj, \lj, \tk, s}(O)\)}
-\label{sec:orgbb2335a}
+\label{sec:org5870df9}
 
 For \(\lj = 1,\dots, J\) and \(s \,\in\, \mathcal{S}\), the stored cause-specific hazards \(\Hat\lambda^{SL}_\lj(s \AX)\) and event-free survival \(\Hat S(s \AX)\) are used to calculate the cause-specific absolute risks \(\Hat F_\lj(s \AX)\), then combined with the nuisance weight to calculate the clever covariates.
 \begin{align*}
@@ -602,7 +607,7 @@ For \(\lj = 1,\dots, J\) and \(s \,\in\, \mathcal{S}\), the stored cause-specifi
 The clever covariate is a function of the {\color{blue}desired intervention density} which is user specified, the {\color{green!70!black} observed intervention densities} which are not changed by tmle targeting, and the {\color{red}outcome-related densities} which are updated by targeting.  
 
 \paragraph{TMLE one-step update}
-\label{sec:org7d3e24d}
+\label{sec:orgd598db2}
 
 Let \(D^*\) be the vector of efficient influence functions
 \begin{align*}
@@ -631,9 +636,9 @@ ConcreteRD <- ConcreteRD$RD[order(Estimator, Time, Event)]
 
 
 \section{Full Code Examples}
-\label{sec:org76d4c46}
+\label{sec:orgf009ea4}
 \subsection{Competing Risks pbc Analysis}
-\label{sec:org9326968}
+\label{sec:org45ff237}
 
 We are often interested in the causal effect of interventions on the time until some outcome occurs. For instance the PBC (primary biliary cholangitis) data set resulted from the Mayo Clinic's randomized controlled trial aimed at determining if D-penicillamine was better than placebo at delaying the death of patients with PBC. In this trial, as in the real world, patients sometimes received life-saving liver transplants - a competing event which we wish to observe jointly with death, thus leading to the full data
 \[ X = (\T^1, \Delta^1, \T^0, \Delta^0, \L : \T^a \leq t_{max},\; \Delta \in \{1, 2\},\; a \in \{0, 1\})\]
@@ -678,36 +683,31 @@ ConcreteOut <- getOutput(ConcreteEst, "RD")$RD
 head(ConcreteOut, 10)
 \end{lstlisting}
 
-
-
-3
-
-4
-
-7
-
-8
-
-11
-
-12
-
-15
-
-16
-
-19
-
-20
+\begin{center}
+\begin{tabular}{lrrrr}
+Estimator & Event & Time & RD & se\\
+\hline
+tmle & 1 & 1440 & -0.012989172 & 0.01786192\\
+tmle & 2 & 1440 & 0.046210334 & 0.04154612\\
+tmle & 1 & 1530 & 0.004761007 & 0.02131398\\
+tmle & 2 & 1530 & 0.048368036 & 0.04239952\\
+tmle & 1 & 1620 & 0.017551051 & 0.02310111\\
+tmle & 2 & 1620 & 0.045792211 & 0.04269689\\
+tmle & 1 & 1710 & 0.017551051 & 0.02310111\\
+tmle & 2 & 1710 & 0.018490620 & 0.04338313\\
+tmle & 1 & 1800 & 0.017551051 & 0.02310111\\
+tmle & 2 & 1800 & 0.012207170 & 0.04385966\\
+\end{tabular}
+\end{center}
 
 \begin{figure}[H]
 \includegraphics[width=0.9\linewidth]{concrete-pbc.png}
 \end{figure}
 
 \section{Appendix 1: Specific Code Examples}
-\label{sec:org381052f}
+\label{sec:org08546e5}
 \subsection{makeITT}
-\label{sec:orgf3673ce}
+\label{sec:orgf06ecba}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
 \begin{lstlisting}
@@ -737,7 +737,7 @@ ITT$`A=0`
 \end{lstlisting}
 
 \subsection{Estimating Propensity Score using SuperLearner}
-\label{sec:org4c0fefb}
+\label{sec:orgde8f2e0}
 
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
@@ -764,7 +764,7 @@ TargetEvent = 1:2, TargetTime = (3:7)*500,
 
 
 \subsection{Estimating Propensity Scores using sl3}
-\label{sec:orgceea645}
+\label{sec:org247d5df}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none,otherkeywords={}, deletekeywords={}}
 \begin{lstlisting}
@@ -786,7 +786,7 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
 
 
 \section{Appendix 2: Nice to have Concepts}
-\label{sec:orga83bb6c}
+\label{sec:org19ac78a}
 
 \subsection{Identification}
 \label{identification}
@@ -843,7 +843,7 @@ Since the density \(P(O_d=o)\) implies any probability event about \(O_d\), this
 
 
 \section{Old Intro}
-\label{sec:org4a630b7}
+\label{sec:orgc40d8f1}
 
 We are often interested in the causal effect of interventions on the time until some outcome occurs. For instance the PBC (primary biliary cholangitis) data set resulted from the Mayo Clinic's randomized controlled trial aimed at determining if D-penicillamine was better than placebo at delaying the death of patients with PBC. In this trial, as in many time-to-event studies, the failure event (i.e. death) was not observed for many patients either because the study had ended or because they had dropped out of contact while they were still alive. The occurence of such events, which obscure the observation of the event of interest and which researchers would have ideally prevented, is common in time-to-event data and is referred to as right-censoring. On the other hand, other patients received a liver transplant during the study, which saved them from dying from PBC; This however was an outcome that researchers might not have wanted to prevent; after all, it could be important to know if D-penicillamine affects if and when patients receive life-saving transplants. In cases like this when mutually exclusive outcomes are jointly of interest to researchers, we have the case of competing events. With complex survival data, just formulating clear causal questions can be a serious undertaking. Fortunately, the formal causal frameworks developed in recent decades, such as the Neyman-Rubin language of counterfactuals, help us to define unambiguous causal questions and to determine what observed data is needed to answer them. 
 
