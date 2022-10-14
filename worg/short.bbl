@@ -1,4 +1,4 @@
-\begin{thebibliography}{20}
+\begin{thebibliography}{21}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -10,22 +10,6 @@ D.~Benkeser and N.~Hejazi.
 \newblock survtmle: {Compute} {Targeted} {Minimum} {Loss}-{Based} {Estimates}
   in {Right}-{Censored} {Survival} {Settings}, Apr. 2019.
 \newblock URL \url{https://CRAN.R-project.org/package=survtmle}.
-
-\bibitem[Benkeser and Van Der~Laan(2016)]{benkeser_highly_2016}
-D.~Benkeser and M.~Van Der~Laan.
-\newblock The {Highly} {Adaptive} {Lasso} {Estimator}.
-\newblock In \emph{2016 {IEEE} {International} {Conference} on {Data} {Science}
-  and {Advanced} {Analytics} ({DSAA})}, pages 689--696, Oct. 2016.
-\newblock \doi{10.1109/DSAA.2016.93}.
-\newblock ISSN: null.
-
-\bibitem[Bickel et~al.(1998)Bickel, Klaassen, Ritov, and
-  Wellner]{bickel_efficient_1998}
-P.~J. Bickel, C.~A.~J. Klaassen, Y.~Ritov, and J.~A. Wellner.
-\newblock \emph{Efficient and {Adaptive} {Estimation} for {Semiparametric}
-  {Models}}.
-\newblock Springer-Verlag, New York, 1998.
-\newblock ISBN 978-0-387-98473-5.
 
 \bibitem[Denz et~al.(2022)Denz, Klaaßen-Mielke, and
   Timmesfeld]{denz_comparison_2022}
@@ -43,11 +27,28 @@ T.~A. Gerds, J.~S. Ohlendorff, P.~Blanche, R.~Mortensen, M.~Wright,
   {Scores} for {Survival} {Analysis} with {Competing} {Risks}, Sept. 2022.
 \newblock URL \url{https://CRAN.R-project.org/package=riskRegression}.
 
-\bibitem[Kennedy(2016)]{kennedy2016semiparametric}
+\bibitem[Holland(1986)]{holland_statistics_1986}
+P.~W. Holland.
+\newblock Statistics and {Causal} {Inference}.
+\newblock \emph{Journal of the American Statistical Association}, 81\penalty0
+  (396):\penalty0 945--960, 1986.
+\newblock ISSN 0162-1459.
+\newblock \doi{10.2307/2289064}.
+\newblock URL \url{http://www.jstor.org/stable/2289064}.
+\newblock Publisher: [American Statistical Association, Taylor \& Francis,
+  Ltd.].
+
+\bibitem[Kennedy(2016)]{kennedy_semiparametric_2016}
 E.~H. Kennedy.
-\newblock Semiparametric theory and empirical processes in causal inference.
-\newblock In \emph{Statistical causal inferences and their applications in
-  public health research}, pages 141--167. Springer, 2016.
+\newblock Semiparametric {Theory} and {Empirical} {Processes} in {Causal}
+  {Inference}.
+\newblock In H.~He, P.~Wu, and D.-G.~D. Chen, editors, \emph{Statistical
+  {Causal} {Inferences} and {Their} {Applications} in {Public} {Health}
+  {Research}}, {ICSA} {Book} {Series} in {Statistics}, pages 141--167. Springer
+  International Publishing, Cham, 2016.
+\newblock ISBN 978-3-319-41259-7.
+\newblock \doi{10.1007/978-3-319-41259-7_8}.
+\newblock URL \url{https://doi.org/10.1007/978-3-319-41259-7_8}.
 
 \bibitem[Laan(2006)]{laan_statistical_2006}
 M.~J. v.~d. Laan.
@@ -59,14 +60,6 @@ M.~J. v.~d. Laan.
 \newblock URL
   \url{https://www.degruyter.com/document/doi/10.2202/1557-4679.1008/html?lang=en}.
 \newblock Publisher: De Gruyter.
-
-\bibitem[Laan(2017)]{laan_generally_2017}
-M.~J. v.~d. Laan.
-\newblock A {Generally} {Efficient} {Targeted} {Minimum} {Loss} {Based}
-  {Estimator} based on the {Highly} {Adaptive} {Lasso}.
-\newblock \emph{The International Journal of Biostatistics}, 13\penalty0 (2),
-  Oct. 2017.
-\newblock \doi{10.1515/ijb-2015-0097}.
 
 \bibitem[Laan and Dudoit(2003)]{laan_unified_2003}
 M.~J. v.~d. Laan and S.~Dudoit.
@@ -83,6 +76,14 @@ M.~J. v.~d. Laan and J.~M. Robins.
 \newblock Springer {Series} in {Statistics}. Springer-Verlag, New York, 2003.
 \newblock ISBN 978-0-387-95556-8.
 
+\bibitem[Laan and Rose(2011)]{laan_targeted_2011}
+M.~J. v.~d. Laan and S.~Rose.
+\newblock \emph{Targeted {Learning}: {Causal} {Inference} for {Observational}
+  and {Experimental} {Data}}.
+\newblock Springer {Series} in {Statistics}. Springer-Verlag, New York, 2011.
+\newblock ISBN 978-1-4419-9781-4.
+\newblock \doi{10.1007/978-1-4419-9782-1}.
+
 \bibitem[Laan et~al.(2007)Laan, Polley, and Hubbard]{laan_super_2007}
 M.~J. v.~d. Laan, E.~C. Polley, and A.~E. Hubbard.
 \newblock Super {Learner}.
@@ -90,6 +91,12 @@ M.~J. v.~d. Laan, E.~C. Polley, and A.~E. Hubbard.
   6\penalty0 (1), Sept. 2007.
 \newblock ISSN 1544-6115, 2194-6302.
 \newblock \doi{10.2202/1544-6115.1309}.
+
+\bibitem[Pearl et~al.(2016)Pearl, Glymour, and Jewell]{pearl_causal_2016}
+J.~Pearl, M.~Glymour, and N.~P. Jewell.
+\newblock \emph{Causal {Inference} in {Statistics} - {A} {Primer}}.
+\newblock Wiley, Chichester, West Sussex, 1st edition edition, Mar. 2016.
+\newblock ISBN 978-1-119-18684-7.
 
 \bibitem[Petersen and van~der Laan(2014)]{petersen_causal_2014}
 M.~L. Petersen and M.~J. van~der Laan.
@@ -99,6 +106,13 @@ M.~L. Petersen and M.~J. van~der Laan.
   418--426, May 2014.
 \newblock ISSN 1531-5487.
 \newblock \doi{10.1097/EDE.0000000000000078}.
+
+\bibitem[Phillips et~al.(2022)Phillips, van~der Laan, Lee, and
+  Gruber]{phillips_practical_2022}
+R.~V. Phillips, M.~J. van~der Laan, H.~Lee, and S.~Gruber.
+\newblock Practical considerations for specifying a super learner, Apr. 2022.
+\newblock URL \url{http://arxiv.org/abs/2204.06139}.
+\newblock arXiv:2204.06139 [stat].
 
 \bibitem[Polley et~al.(2021)Polley, LeDell, Kennedy, Lendle, and
   Laan]{polley_superlearner_2021}

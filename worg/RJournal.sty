@@ -97,9 +97,12 @@
 
 \usepackage[medium]{titlesec}
 \usepackage{titletoc}
-\titleformat{\section}   {\normalfont\large\bfseries}{}{0em}{}
-\titleformat{\subsection}{\normalfont\normalsize\bfseries}{}{0em}{}
-\titlecontents{chapter}   [0em]{}{}{}{\titlerule*[1em]{.}\contentspage}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}{}{0pt}{\Huge}
+\renewcommand\thesection{\arabic{section}}
+\titleformat{\section}   {\normalfont\large\bfseries}{\thetitle \quad}{0em}{}
+\titleformat{\subsection} {\normalfont\normalsize\bfseries}{\thetitle \quad}{0em}{}
+\titlecontents{chapter}   [0em]{}{\thetitle \quad}{}{\titlerule*[1em]{.}\contentspage}
 
 % Article layout ---------------------------------------------------------------
 
