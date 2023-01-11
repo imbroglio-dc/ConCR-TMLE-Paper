@@ -1,4 +1,4 @@
-\begin{thebibliography}{21}
+\begin{thebibliography}{23}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -10,6 +10,14 @@ D.~Benkeser and N.~Hejazi.
 \newblock survtmle: {Compute} {Targeted} {Minimum} {Loss}-{Based} {Estimates}
   in {Right}-{Censored} {Survival} {Settings}, Apr. 2019.
 \newblock URL \url{https://CRAN.R-project.org/package=survtmle}.
+
+\bibitem[Benkeser and Van Der~Laan(2016)]{benkeser_highly_2016}
+D.~Benkeser and M.~Van Der~Laan.
+\newblock The {Highly} {Adaptive} {Lasso} {Estimator}.
+\newblock In \emph{2016 {IEEE} {International} {Conference} on {Data} {Science}
+  and {Advanced} {Analytics} ({DSAA})}, pages 689--696, Oct. 2016.
+\newblock \doi{10.1109/DSAA.2016.93}.
+\newblock ISSN: null.
 
 \bibitem[Denz et~al.(2022)Denz, Klaaßen-Mielke, and
   Timmesfeld]{denz_comparison_2022}
@@ -61,6 +69,14 @@ M.~J. v.~d. Laan.
   \url{https://www.degruyter.com/document/doi/10.2202/1557-4679.1008/html?lang=en}.
 \newblock Publisher: De Gruyter.
 
+\bibitem[Laan(2017)]{laan_generally_2017}
+M.~J. v.~d. Laan.
+\newblock A {Generally} {Efficient} {Targeted} {Minimum} {Loss} {Based}
+  {Estimator} based on the {Highly} {Adaptive} {Lasso}.
+\newblock \emph{The International Journal of Biostatistics}, 13\penalty0 (2),
+  Oct. 2017.
+\newblock \doi{10.1515/ijb-2015-0097}.
+
 \bibitem[Laan and Dudoit(2003)]{laan_unified_2003}
 M.~J. v.~d. Laan and S.~Dudoit.
 \newblock Unified {Cross}-{Validation} {Methodology} {For} {Selection} {Among}
@@ -107,6 +123,16 @@ M.~L. Petersen and M.~J. van~der Laan.
 \newblock ISSN 1531-5487.
 \newblock \doi{10.1097/EDE.0000000000000078}.
 
+\bibitem[Petersen et~al.(2012)Petersen, Porter, Gruber, Wang, and van~der
+  Laan]{petersen_diagnosing_2012}
+M.~L. Petersen, K.~E. Porter, S.~Gruber, Y.~Wang, and M.~J. van~der Laan.
+\newblock Diagnosing and responding to violations in the positivity assumption.
+\newblock \emph{Statistical Methods in Medical Research}, 21\penalty0
+  (1):\penalty0 31--54, Feb. 2012.
+\newblock ISSN 0962-2802, 1477-0334.
+\newblock \doi{10.1177/0962280210386207}.
+\newblock URL \url{http://journals.sagepub.com/doi/10.1177/0962280210386207}.
+
 \bibitem[Phillips et~al.(2022)Phillips, van~der Laan, Lee, and
   Gruber]{phillips_practical_2022}
 R.~V. Phillips, M.~J. van~der Laan, H.~Lee, and S.~Gruber.
@@ -124,10 +150,9 @@ E.~Polley, E.~LeDell, C.~Kennedy, S.~Lendle, and M.~v.~d. Laan.
   Laan]{rytgaard_continuous-time_2021}
 H.~C. Rytgaard, T.~A. Gerds, and M.~J. van~der Laan.
 \newblock Continuous-time targeted minimum loss-based estimation of
-  intervention-specific mean outcomes.
-\newblock \emph{arXiv:2105.02088 [math, stat]}, May 2021.
+  intervention-specific mean outcomes, May 2021.
 \newblock URL \url{http://arxiv.org/abs/2105.02088}.
-\newblock arXiv: 2105.02088.
+\newblock arXiv:2105.02088 [math, stat].
 
 \bibitem[Rytgaard and van~der Laan(2021)]{rytgaard_one-step_2021}
 H.~C.~W. Rytgaard and M.~J. van~der Laan.
@@ -157,14 +182,6 @@ A.~W. v.~d. Vaart, S.~Dudoit, and M.~J. v.~d. Laan.
 \newblock \emph{Statistics \& Decisions}, 24\penalty0 (3), Jan. 2006.
 \newblock ISSN 0721-2631.
 \newblock \doi{10.1524/stnd.2006.24.3.351}.
-
-\bibitem[Wallace et~al.(2020)Wallace, Moodie, Stephens, and
-  Schulz]{wallace_dtrreg_2020}
-M.~Wallace, E.~E.~M. Moodie, D.~A. Stephens, and G.~S. a.~J. Schulz.
-\newblock {DTRreg}: {DTR} {Estimation} and {Inference} via {G}-{Estimation},
-  {Dynamic} {WOLS}, {Q}-{Learning}, and {Dynamic} {Weighted} {Survival}
-  {Modeling} ({DWSurv}), Sept. 2020.
-\newblock URL \url{https://CRAN.R-project.org/package=DTRreg}.
 
 \bibitem[Westling et~al.(2021)Westling, Luedtke, Gilbert, and
   Carone]{westling_inference_2021}
