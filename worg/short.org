@@ -1,4 +1,4 @@
-\title{concrete R Paper}
+\title{concrete R Paper: Title TBD}
 \subtitle{}
 \author{by David Chen, Thomas Gerds, Helene Rytgaard, Maya L. Petersen, Mark van der Laan, ...}
 
@@ -6,43 +6,50 @@
 
 #+begin_export latex
 \abstract{
-Recently targeted maximum likelihood-based estimation (TMLE) has been used to develop estimators of cause-specific absolute risks for time-to-event outcomes measured in continuous time. The point treatment continuous-time survival TMLE method is implemented in the \CRANpkg{concrete} package for `R`. \CRANpkg{concrete} provides methods to estimate intervention and cause-specific absolute risks as well as contrastive parameters such as risk differences and risk ratios. The package allows the risks of multiple causes to be jointly targeted in the case of competing risks, at multiple time points and in the presence of right-censoring. In this paper we describe and illustrate the usage of the \CRANpkg{concrete} package.
+Competing risks are a common but under-addressed feature in biomedical survival studies. This article outlines a causal inference workflow that illuminates whether or not the researchers' question of interest involves competing risks and introduces the R package \CRANpkg{concrete} which implements a targeted maximum likelihood estimator for the cause-specific absolute risks for time-to-event outcomes measured in continuous or near-continuous time. The package can be used for survival analyses with or without competing risks and allows users to estimate causally-interpretable estimands such as risk ratios and risk differences using possibly misspecified cause-specific Cox models. Point estimates can be produced using G-formula plug-in or TMLE, and influence curve-based asymptotic inference will be provided for TMLE. For target estimands involving multiple times or events, simultaenous confidence bands can be produced using nfluence curve-based simulation. This paper will demonstrate the use of \CRANpkg{concrete} using the PBC dataset.
 }
+
+Recently targeted maximum likelihood-based estimation (TMLE) has been used to develop estimators for cause-specific absolute risks of time-to-event outcomes measured in continuous time. \CRANpkg{concrete} implements in R a continuous-time TMLE for cause-specific absolute risks under static and dynamic interventions on a point treatment. \CRANpkg{concrete} can also return estimates and asymptotic inference for contrastive parameters such as risk differences and risk ratios. Risk estimands can be jointly targeted at multiple times, and in the case of competing risks, multiple cause-specific risks can be jointly targeted. In this paper we review the TMLE methodology implemented in \CRANpkg{concrete} and demonstrate its use and its features.
+
 #+end_export
 
 * Introduction
 :PROPERTIES:
 :CUSTOM_ID: intro
 :END:
+In many biomedical survival applications, study subjects are susceptible to competing risks. Recognizing this, authors have cautioned against the use of the standard survival estimands (cite:andersen_competing_2012, cite:koller_competing_2012, cite:austin_accounting_2017) and several methods have been developed for analyzing competing risks, including Fine-Gray regression (cite:fine_proportional_1999), pseudovalue regression (cite:klein_regression_2005), and direct binomial regression (cite:scheike_predicting_2008, cite:gerds_absolute_2012). Nevertheless, reviews of clinical literature by cite:koller_competing_2012 and cite:austin_accounting_2017 found that most published trials failed to adequately address the effect of potential competing risks in their studies. We suggest that this pattern results not from a lack of awareness, but rather from understandable confusion about when and how to choose an appropriate competing risks method. The remedy we propose is a causal roadmap (cite:petersen_causal_2014) that guides the process of 1) transforming a clinical question into a rigorously defined causal estimand, 2) translating that causal quantity into a statistical estimand while clearly addressing the necessary assumptions for doing so, and 3) estimating the target statistical quantity via a fully prespecified analysis that provides reliable inference and achieves desirable statistical properties such as efficiency and consistency. In Section \ref{concepts} we demonstrate a survival competing risks analysis following this roadmap and show how careful causal reasoning in step 1) can clarify the process of making the correct statistical choices. \CRANpkg{concrete} fills in step 3 by implementing the recently developed continuous-time Targeted Maximum Likelihood Estimation (TMLE) procedure which comes as the latest development in semi-parametric efficient plug-in estimators.
 
-\CRANpkg{concrete} is a statistical estimation package written to help researchers answer causal questions about time-to-event outcomes in continous time. When we analyze data and make predictions to guide future actions we are in essence asking causal questions, questions that can be made rigorous using the formal causal inference frameworks developed in recent decades (cite:pearl_causal_2016, cite:holland_statistics_1986). However, the transition from causal thinking to statistical estimation is not always straightforward, and so a cohesive causal inference workflow should follow a structured roadmap (cite:petersen_causal_2014) that begins with the causal model and causal estimands, moves through identification to a statistical model and estimands, and then finally performs estimation and provides inference. Detailed discussions of these first two stages can be found elsewhere but will only be briefly discussed in this manuscript, as \CRANpkg{concrete} is fundamentally a statistical estimation package, albeit one that is written with this causal inference workflow in mind.
+
+
+** How concrete relates to other peoples work
+The \ctv{Causal Inference} CRAN Task View shows just \CRANpkg{riskregression} (cite:gerds_riskregression_2022) as expressly estimating treatment effect estimands in survival settings. \CRANpkg{riskregression} implements the g-formula plug-in, IPTW, and double-robust AIPTW estimators. The \ctv{Survival} CRAN Task View shows no packages to be implementing efficient semi-parametric estimators for survival estimands, though the non-CRAN packages [[https://github.com/RobinDenz1/adjustedCurves][adjustedCurves]] (cite:denz_comparison_2022) and [[https://github.com/tedwestling/CFsurvival][CFsurvival]] (cite:westling_inference_2021) implement the AIPTW and a cross-fitted doubly-robust estimator respectively.
+
+\CRANpkg{concrete} is the first general use R package implementing TMLE for continuous-time survival, with [[https://github.com/helenecharlotte/continuousTMLE][continuousTMLE]] being the methods development package accompanying (cite:rytgaard_one-step_2021, cite:rytgaard_continuous-time_2021). The \CRANpkg{ltmle} (cite:schwab_ltmle_2020), \CRANpkg{stremr} (cite:sofrygin_stremr_2017), and \CRANpkg{survtmle} (cite:benkeser_survtmle_2019) packages either natively or can be adapted to perform discrete-time TMLE for absolute risks of right-censored survival outcomes; \CRANpkg{ltmle} and \CRANpkg{stremr} use the method of iterated expectations while \CRANpkg{survtmle} can target the hazard-based survival formulation. Notably these packages all implement discrete-time TMLEs and would necessitate discretizing continuous-time data which can negatively impact estimator performance. 
+# Poorly specified discretization can introduce bias and inflate the variance of estimators; however, no definitive best practices for discretization have yet been established. Often this leads to ad-hoc discretization choices that make poorly characterized trade offs between bias and loss of efficiency. Analyzing continuous-time survival data using a continuous-time method avoids this hurdle of discretization entirely.
+ 
+
+\CRANpkg{concrete} is an R package written to help researchers answer causal questions about the effect of interventions on time-to-event outcomes measured in continous time. Therefore, the package references concepts from causal inference even though \CRANpkg{concrete} can be used purely for statistical inference without causal ramifications. When we analyze data to guide future actions, we are in essence asking causal questions - questions that can be made rigorous with the formal frameworks developed in recent decades (cite:pearl_causal_2016, cite:holland_statistics_1986). Unfortunately the transition from causal thinking to statistical estimation is not always straightforward, and so a cohesive causal inference workflow ideally follows a structured roadmap (cite:petersen_causal_2014) that begins with 1) the causal model and causal estimands, 2) moves through identification to a statistical model and estimands, and then finally 3) performs estimation and provides inference. In subsequent sections we will briefly discuss these first two stages as they pertain to analyses of time-to-event data, but the majority of this manuscript will focus on the statistical estimation methodology implemented in \CRANpkg{concrete}. Rigorous and detailed discussions of these first two stages can be found elsewhere (cite:laan_targeted_2011, cite:laan_targeted_2018, cite:rytgaard_continuous-time_2021).
 
 ** What is in this manuscript
 We write for readers looking for a hands-on introduction to the one-step targeted maximum likelihood estimation (TMLE) method for continuous time survival analysis described in cite:rytgaard_one-step_2021, as well as for readers
-wishing to use this TMLE for their own continuous time survival or competing risks analyses. In Section \ref{concepts} we briefly overview the one-step TMLE method as it is implemented in \CRANpkg{concrete}
-and in Section \ref{UsingConcrete} we show how to use \CRANpkg{concrete} for a continuous-time competing risks analysis. For a full and rigorous treatment of the one-step TMLE for continuous-time survival and competing risks analyses, see cite:rytgaard_one-step_2021 and cite:rytgaard_continuous-time_2021.
+wishing to use \CRANpkg{concrete} for their own analyses. In Section \ref{concepts} we briefly overview the one-step TMLE method as it is implemented in \CRANpkg{concrete} and in Section \ref{UsingConcrete} we demonstrate a competing risks analysis using \CRANpkg{concrete}. For a full and rigorous treatment of the one-step TMLE for continuous-time survival and competing risks, see cite:rytgaard_one-step_2021 and cite:rytgaard_continuous-time_2021.
 
 ** What can concrete be used for 
-\CRANpkg{concrete} can be used for targeted estimation of estimands derived from cause-specific absolute risks (e.g. relative risks and risk differences) under static and dynamic binary treatments given at baseline. The currently implemented estimators are the one-step TMLE and a g-formula plug-in, and both can be applied to data involving baseline covariate confounding, right-censoring and competing risks.
+\CRANpkg{concrete} can be used for estimands derived from cause-specific absolute risks (e.g. risk ratios and risk differences) under static and dynamic interventions on binary treatments given at baseline. The currently implemented estimators are the one-step TMLE and a g-formula plug-in, and both can be applied to data involving baseline covariate confounding, right-censoring and competing risks. 
 
-\CRANpkg{concrete} cannot yet investigate stochastic interventions or interventions on continuous or multinomial treatments. Methods have not yet been implemented to account for paired or clustered data, time-dependent treatments (e.g. drop-in) or time-dependent confounding. Currently only Cox models can be used for initial estimation of conditional hazards; incorporation of estimators based on highly adaptive lasso (HAL) and penalized cox is planned for future package versions.
+\CRANpkg{concrete} cannot yet investigate stochastic interventions or interventions on multinomial and continuous treatments. Currently only Cox models can be used for initial estimation of conditional hazards though the incorporation of penalized Cox (coxnet) and hazard estimators based on highly adaptive lasso (HAL) are planned in a future package version. Methods have not yet been implemented to account for time-dependent treatments (e.g. drop-in) or time-dependent confounding.
 
-\CRANpkg{concrete} is not meant to be used for left trunctation (i.e. delayed entry) or interval censored data and it will not check identification assumptions. 
+\CRANpkg{concrete} is not meant to be used for left trunctation (i.e. delayed entry), interval censored data, or clustered data; and it cannot assess the assumptions needed for causal identification. 
 
-** How concrete relates to other peoples work
-\CRANpkg{concrete} will be the first R package implementing TMLE for continuous-time survival. The \CRANpkg{ltmle} (cite:schwab_ltmle_2020), \CRANpkg{stremr} (cite:sofrygin_stremr_2017), and \CRANpkg{survtmle} (cite:benkeser_survtmle_2019) packages either natively or can be adapted to perform discrete-time TMLE for absolute risks of right-censored survival outcomes; \CRANpkg{ltmle} and \CRANpkg{stremr} use the method of iterated expectations while \CRANpkg{survtmle} can target the hazard-based survival formulation. Notably these packages all work in discrete time and would necessitate discretizing continuous-time data, a practice which can in cases introduce bias and decrease estimator efficiency. 
-# Poorly specified discretization can introduce bias and inflate the variance of estimators; however, no definitive best practices for discretization have yet been established. Often this leads to ad-hoc discretization choices that make poorly characterized trade offs between bias and loss of efficiency. Analyzing continuous-time survival data using a continuous-time method avoids this hurdle of discretization entirely.
-
-The \ctv{Causal Inference} CRAN Task View shows just \CRANpkg{riskregression} (cite:gerds_riskregression_2022) as expressly estimating treatment effect estimands in survival settings. \CRANpkg{riskregression} implements the g-formula plug-in, IPTW, and double-robust AIPTW estimators. The \ctv{Survival} CRAN Task View shows no packages to be implementing efficient semi-parametric estimators for survival estimands, while not yet available on CRAN are the packages [[https://github.com/RobinDenz1/adjustedCurves][adjustedCurves]] (cite:denz_comparison_2022) and [[https://github.com/tedwestling/CFsurvival][CFsurvival]] (cite:westling_inference_2021) which implement the AIPTW and a cross-fitted doubly-robust estimator respectively. 
 
 ** What concrete does
-\CRANpkg{concrete} implements the one-step TMLE developed in cite:rytgaard_one-step_2021 to estimate cause and intervention specific absolute risks, with asymptotic inference derived from the variance of the efficient influence curve (EIC) (cite:laan_unified_2003-1). \CRANpkg{concrete} can also return risk differences and risk ratios computed from these absolute risks with inference derived using the delta method on the EICs of the constituent absolute risks.
+\CRANpkg{concrete} implements the one-step TMLE developed in cite:rytgaard_one-step_2021 to estimate cause-specific absolute risks for interventions on point treatments and covariate measured at basleine. Asymptotic inference for TMLE estimates are derived from the variance of the efficient influence curve (EIC) (cite:laan_unified_2003-1). \CRANpkg{concrete} can also output estimates of risk differences and risk ratios, computed from absolute risk estimates with inference derived using the delta method.
 
 Broadly speaking, this one-step TMLE procedure consists of two stages: 1) an initial estimation of nuisance parameters and 2) a targeted update of the initial estimators to solve the EIC of the target statistical estimand (cite:laan_unified_2003-1, cite:kennedy_semiparametric_2016).
 
-As it is often impossible to know in advance which estimator is best suited for a particular estimation problem, the use of a cross-validated machine learning ensemble with oracle guarantees (Super Learner cite:laan_super_2007, cite:polley_superlearner_2021, cite:laan_unified_2003, cite:vaart_oracle_2006) is helpful for the initial estimation of nuisance parameters. A Super Learner with a robust candidate library and a suitable loss function gives users the best chance of achieving the necessary nuisance estimation convergence rates for TMLE to be consistent and efficient. Guidance on how to best specify Superlearner estimators are discussed further in cite:phillips_practical_2022. Whenever possible, Super Learner libraries should include the highly adaptive lasso (HAL) which achieves the needed convergence rate (cite:laan_generally_2017,benkeser_highly_2016,rytgaard_continuous-time_2021) for TMLE's asymptotic properties.
+For TMLE to be consistent and efficient, the initial nuisance parameter estimators must achieve certain convergence requirements. Unfortunately it is often impossible to know in advance which estimator is best suited for a particular estimation problem, and so in \CRANpkg{concrete} nuisance parameters are estimated using Super Learning, a cross-validated machine learning ensemble algorithm with oracle guarantees (cite:laan_super_2007, cite:polley_superlearner_2021, cite:laan_unified_2003, cite:vaart_oracle_2006). Super Learners with robust candidate libraries and valid loss functions give users the best chance of achieving the necessary conditions for TMLE's asymptotic properties. Guidance on how to best specify Superlearner estimators are discussed further in cite:phillips_practical_2022. Whenever possible, Super Learner libraries should include the highly adaptive lasso (HAL) which achieves the needed convergence rate (cite:laan_generally_2017,benkeser_highly_2016,rytgaard_continuous-time_2021) for TMLE's asymptotic properties.
 
-The subsequent targeted update is based in semi-parametric efficiency theory (cite:laan_targeted_2011, cite:kennedy_semiparametric_2016), specifically that a regular, asymptotically linear estimator of a statistical estimand is efficient if its influence function is equal to the target estimand's EIC. By updating initial estimators of nuisance parameters to solve the EIC, TMLE recovers asymptotically valid inference despite potentially using flexible algorithms without well understood limiting behaviour for initial estimation.
+The subsequent targeted update is based in semi-parametric efficiency theory (cite:laan_targeted_2011, cite:kennedy_semiparametric_2016), specifically that a regular, asymptotically linear estimator of a statistical estimand is efficient if its influence function is equal to the target estimand's EIC. By updating initial estimators of nuisance parameters to solve the EIC, TMLE can use flexible machine-learning algorithms for initial estimation, and still recover asymptotically valide inference. Contrary to other semi-parametric efficient estimators based on the influence function, TMLE is a plug-in estimator 
 
 ** concrete in a nutshell - PBC example
 #+name: pbc nutshell
@@ -65,19 +72,19 @@ ConcreteArgs <- formatArguments(DataTable = data,
                                 Intervention = makeITT(),
                                 TargetTime = 90 * (6:30),
                                 TargetEvent = 1:2,
-                                MaxUpdateIter = 250)
+                                MaxUpdateIter = 500)
 # Compute
 ConcreteEst <- doConcrete(ConcreteArgs)
 
 # Return Output
-ConcreteOut <- getOutput(ConcreteEst)
-plot(ConcreteOut, Estimand = "RR", GComp = FALSE)
+ConcreteOut <- getOutput(ConcreteEst, Estimand = "RD")
+plot(ConcreteOut, Estimand = "RD", GComp = TRUE, ask = FALSE)
 #+END_SRC
 
 #+BEGIN_SRC R :results output :exports none :session *R* :cache yes
 library(ggplot2)
-RR <- plot(ConcreteOut, "RR")
-ggsave(filename = "RR", plot = RR, device = png, path = "/Shared/Projects/ConCR-TMLE-Paper/worg/", width = 10, height = 4, units = "in")
+RR <- plot(ConcreteOut, Estimand = "RD", GComp = TRUE, ask = FALSE)
+ggsave(filename = "RD", plot = RR, device = png, path = "/Shared/Projects/ConCR-TMLE-Paper/worg/", width = 10, height = 4, units = "in")
 #+END_SRC
 
 \begin{figure}[H]
@@ -94,119 +101,138 @@ ggsave(filename = "RR", plot = RR, device = png, path = "/Shared/Projects/ConCR-
 # make specific for survival
 A basic targeted learning roadmap for analyzing continuous-time survival or competing risks consists of:
 \begin{enumerate}
-  \item Defining the causal model and specifying the causal estimand (e.g. causal risk difference at time $t$). Considerations include defining a time zero and a time horizon, specifying the event(s) of interest, identifying the intervention (i.e. treatment) variable and specifying the desired intervention(s).
-  \item Stating the assumptions needed to define a statistical model with a statistical estimand that identifies the causal estimand. Considerations include identifying confounding variables and sources of right-censoring, establishing positivity for remaining uncensored and following desired interventions, and formalizing knowledge about the statistical model (e.g. dependency structure or functional structures such as proportional hazards)
-  \item Estimation and inference. Considerations include pre-specification, estimator consistency and efficiency within a desired class, and both theoretical and practical robustness and usability.
+  \item Defining the causal model and specifying a causal estimand (e.g. causal risk difference at time $t$). Considerations include defining time zero and a time horizon, identifying the intervention (i.e. treatment) variable, specifying the desired intervention(s), specifying the event(s) of interest.
+  \item Defining the statistical model and the statistical estimand, while stating and discussing the assumptions necessary for the statistical estimand to identify the causal estimand. Considerations include identifying confounding variables and sources of right-censoring, establishing positivity for censoring and desired interventions, and formalizing knowledge about the statistical model (e.g. dependency structures or functional structures such as proportional hazards).
+  \item Performing estimation and providing inference. Considerations include choosing an estimator with desirable properties (e.g. consistency and efficiency within a desired class), using outcome-blind simulations to practically assess the estimator's robustness and usability, and pre-specifying the estimation procedure to avoid misleading inference.
 \end{enumerate}
 
+In the following sections we discuss the steps in this roadmap in more detail.
+
 ** The Causal Model: Counterfactuals, Interventions, and Causal Estimands
-With time-to-event data, the counterfactual outcome is the time until some event(s) occur to subjects if they hypothetically received an intervention. Let $A$ be this intervention variable and let $d$ be the intervention rule, i.e. the function that assigns values to $A$. The simplest interventions are static rules to set $A$ to some value $a$, \(d = a\). A more flexible dynamic treatment rule might assign treatments based on subjects' baseline covariates, while stochastic treatment rules may even depend on the natural treatment assignment mechanism. Whatever the desired intervention, let $d$ represent the intervention of interest and let \(\L\) represent a subject's baseline covariates. Then a counterfactual survival dataset with \(J\) competing events, an intervention \(d\) delivered at baseline time zero, and a time horizon of \(t_{max}\) takes the form:
+With time-to-event data, the counterfactual outcomes are how long it takes for some event(s) occur if subjects hypothetically receive some intervention. Let $A$ be this intervention variable and let $d$ be the intervention rule, i.e. the function that assigns values to $A$. The simplest interventions are static rules to set $A$ to some value $a$, \(d = a\). More flexible dynamic treatment rules might assign treatments based on subjects' baseline covariates, while stochastic treatment rules incorporate randomness may even depend on the natural treatment assignment mechanism. Whatever the desired intervention, let $d$ represent the intervention of interest and let \(\L\) represent subjects' baseline covariates. Then a counterfactual survival dataset with \(J\) competing events, an intervention \(d\) delivered at baseline (i.e. time zero), and a time horizon of \(t_{max}\) takes the form:
 #+begin_export latex
 \begin{equation}
- X = \left(\T^d,\, \Delta^d,\, \L \right) \quad,\quad T^d \in (0, t_{max}] \label{causaldata}
+ X = \left(T^d,\, \Delta^d,\, \L \right) \label{causaldata}
 \end{equation}
 #+end_export
-\(\T^d \in \mathbb{R}^+\) is earliest occurence of any of the \(J\) events under intervention \(d\) and \(\Delta^d \in \{1, \dots, J\}\) shows which of the \(J\) events occured first under intervention \(d\).
+where \(T^d \in (0, t_{max}]\) is earliest occurence of any of the \(J\) events under intervention \(d\), and \(\Delta^d \in \{1, \dots, J\}\) shows which of the \(J\) events occured first under intervention \(d\). Notably, we do not include censoring in this counterfactual data and instead isolate just those events that experimenters would want to observe in their ideal hypothetical experiment. For ideal experiments tracking just one event, the causal setting is one of classic survival; if instead mutually exclusive events would be allowed to compete, then the causal setting is one with competing risks. 
 
-Importantly, counterfactual data does not incorporate censoring; the counterfactual events are only those events that experimenters would allow to occur in their ideal hypothetical experiment. If the ideal experiment would track just the incidence of one event, then the causal problem is one of classic survival; if multiple events would be allowed to compete, then the causal problem is one with competing risks. 
-
-Causal estimands can then be described as functions of this counterfactual data. For instance, to contrast the effects of interventions \(d^*\) and \(d^{**}\), we can write the causal event-\(j\) relative risk at time \(t\) as Eq. \eqref{causalrisk} and the causal difference in event-free survival at time \(t\) as Eq. \eqref{causalsurv}. 
-
-#+begin_export latex
-\begin{equation}
-P(T^{d^*}_j \leq t, \Delta^{d^*} = j) / P(T^{d^{**}}_j \leq t, \Delta^{d^{**}} = j) \label{causalrisk}
-\end{equation}
-#+end_export
+With the counterfactual data defined, causal estimands can then be specified as functions of this data. For instance, the causal event-\(\jj\) relative risks under some interventions \(d^*\) versus \(d^{**}\) can be written as Eq. \eqref{causalrisk} 
 
 #+begin_export latex
 \begin{equation}
-P(T^{d^*}_j < t) - P(T^{d^{**}}_j < t) \label{causalsurv}
+\Psi^\F_{F_{j,t}} = P(T^{d^*} \leq t, \Delta^{d^*} = j) / P(T^{d^{**}} \leq t, \Delta^{d^{**}} = j) \label{causalrisk}
+\end{equation}
+#+end_export
+ and the causal difference in event-free survival at time \(t\) as Eq. \eqref{causalsurv}.
+#+begin_export latex
+\begin{equation}
+\Psi^\F_{S_t} = P(T^{d^*} < t) - P(T^{d^{**}} < t) \label{causalsurv}
 \end{equation}
 #+end_export
 
-Researchers may also be interested in these estimands at multiple timepoints, potentially up to the full risk curves over some time interval, and in the case of competing risks potentially for multiple event types as well.
+Researchers may be interested in these estimands at a single endpoint or at many timepoints, potentially even full risk curves over a time interval (e.g. \(\Psi^\F_{F_{j,t}} : t \in (0, t_{max}]\)). In the case of competing risks, researchers may also be simultaneously interested in multiple cause-specific estimands (e.g. \(\Psi^\F_{F_{j,t}} : j \in 1, \dots, J \)). These estimands, and others, can all be rigorously defined as functions of the counterfactual data; efforts can then be made in the next step to identify these causal estimands with functions of observed data, i.e. statistical estimands.
 
 ** Observed Data, Identification, and Statistical Estimands
 :PROPERTIES: 
 :CUSTOM_ID: ObservedData
 :END:
 
-Observed survival data with \(J\) competing events takes the form:
+Observed time-to-event data with \(J\) competing events might be written as:
 #+begin_export latex
 \begin{equation}
  O = \left(\T,\, \tDelta,\, A,\, \L \right) \label{obs-data}
 \end{equation}
 #+end_export
-where \(\T \in (0, t_{max}]\) is the earlier of the first event time or the right-censoring time, \(\tDelta \in \{0, \dots, J\}\) indicates which event occurs (with 0 indicating right-censoring), \(A\) is the observed intervention and \(\L\) is the set of baseline covariates.
+where \(\T \in (0, t_{max}]\) is the earlier of the first event time \(T\) or the right-censoring time \(C\), \(\tDelta \in \{0, \dots, J\}\) indicates which event occurs (with 0 indicating right-censoring), \(A\) is the observed treatment and \(\L\) is the set of baseline covariates.
 
-To link causal estimands such as Eq. \eqref{causalrisk} and \eqref{causalsurv} to statistical estimands, we need the following untestable identification assumptions to hold: consistency, positivity for treatments and remaining uncensored, no unmeasured confounding, and coarsening at random on the censoring process (details in Appendix \ref{identification}). Given these assumptions, the cause-\(j\) absolute risk at time \(t\) under intervention \(d\) is identified by the g-computation formula
+To link causal estimands such as Eq. \eqref{causalrisk} and \eqref{causalsurv} to statistical estimands, we then need several untestable identification assumptions to hold: consistency, positivity, no unmeasured confounding, and conditionally independent censoring (For more details, see Section 3 in cite:rytgaard_continuous-time_2021). Given these assumptions, the cause-\(j\) absolute risk at time \(t\) under intervention \(d\) can be identified by the g-computation formula
 #+begin_export latex
 \begin{align}
-F^d_j(t) &= \mathbb{E}_{\mathcal{\L}} \left[ \mathbb{E}_{\g^d} \left[{\color{blue!50!green} F_j(t \ax)} \right] \right] \nonumber \\
-&= \mathbb{E}_{\mathcal{\L}} \left[ \int_{\mathcal{A}} \,  \left[{\color{blue!50!green} \int_0^t \lambda_j(s \ax) \, S(s- \ax) \, ds }\right] \, \g^d (a \mid \l) \, da \right] \label{absrisk}
+F^d_j(t) &= \mathbb{E}_{\mathcal{\L}} \left[ \mathbb{E}_{\g^d} \left[{ F_j(t \ax)} \right] \right] \nonumber \\
+&= \mathbb{E}_{\mathcal{\L}} \left[ \int_{\mathcal{A}} \,  \left[{ \int_0^t \lambda_j(s \ax) \, S(s- \ax) \, ds }\right] \, \g^d (a \mid \l) \, da \right] \label{absrisk}
 \end{align}
 #+end_export
-where
-\(\lambda_j(t \ax) = \lim\limits_{h \to 0} \frac{1}{h} P(\T \leq t + h,\, \tDelta = j \mid \T \geq t,\, a,\, \x) \) is the cause-\(j\) conditional hazard,\\
-\(S(t \ax) = \exp\left(-\int^{t}_{0} \sum\limits_{j=1}^{J} \lambda_j(s \ax) \, ds \right)\) is the conditional event-free survival, and \(\g^d(a \mid \l)\) is the treatment propensity implied by the intervention \(d\). With the identification result in Eq. \eqref{absrisk}, the causal absolute risk \eqref{causalrisk} and survival \eqref{causalsurv} estimands can then be identified by statistical estimands \eqref{obsrisk} and \eqref{obssurv}.
+where the cause-\(j\) conditional hazard at time \(t\) is
 #+begin_export latex
-\begin{equation}
-\mathbb{E}_{\mathcal{\L}} \left[ \mathbb{E}_{\g^*} \left[ F_j(t \ax) \right] \right] / \; \mathbb{E}_{\mathcal{\L}} \left[ \mathbb{E}_{\g^{**}} \left[ F_j(t \ax) \right] \right] \label{obsrisk}
-\end{equation}
+\begin{equation*}
+\lambda_j(t \ax) = \lim\limits_{h \to 0} \frac{1}{h} P(\T \leq t + h,\, \tDelta = j \mid \T \geq t,\, a,\, \x) 
+\end{equation*}
 #+end_export
+the conditional event-free survival at time \(t\) is 
 #+begin_export latex
-\begin{equation}
-\left[1 - \sum_{j = 1}^{J} \, \mathbb{E}_{\mathcal{\L}} \left[ \mathbb{E}_{\g^*} \left[ F_j(t \ax) \right] \right] \right] - \left[1 - \sum_{j = 1}^{J} \, \mathbb{E}_{\mathcal{\L}} \left[ \mathbb{E}_{\g^{**}} \left[ F_j(t \ax) \right] \right] \right] \label{obssurv}
-\end{equation}
+\begin{equation*}
+S(t \ax) = \exp\left(-\int^{t}_{0} \sum\limits_{j=1}^{J} \lambda_j(s \ax) \, ds \right)
+\end{equation*}
 #+end_export
-It should be noted that even if the identification assumptions do not hold, these statistical estimands in Eq. \eqref{obsrisk} and \eqref{obssurv} may still have valuable interpretations as standardized risks isolating the importance of the "intervention" variable (cite:laan_statistical_2006).
+and \(\g^d(a \mid \l)\) is the treatment propensity implied by the intervention \(d\).
 
-** Estimation
+With this identification result in Eq \eqref{absrisk}, the causal cause-\(j\) relative risk \eqref{causalrisk} is simply identified by the statistical estimand \eqref{obsrisk} 
+#+begin_export latex
+\begin{equation}
+\Psi_{F_{j,t}} = F^{d^*}_j(t) \;\; / \;\; F^{d^{**}}_j(t) \label{obsrisk}
+\end{equation}
+#+end_export
+and the causal difference in survival \eqref{causalsurv} estimand can then be identified by the statistical estimand \eqref{obssurv}.
+#+begin_export latex
+\begin{equation}
+\Psi_{S_{t}} = \left[1 - \sum_{j = 1}^{J} \, F^{d^*}_j(t) \right] - \left[1 - \sum_{j = 1}^{J} \,  F^{d^{**}}_j(t) \right] \label{obssurv}
+\end{equation}
+#+end_export
+
+It should be noted here that when the identification assumptions do not hold, these statistical estimands in Eq. \eqref{obsrisk} and \eqref{obssurv} may still have valuable interpretations as standardized risks isolating the importance of the "intervention" variable (cite:laan_statistical_2006).
+
+** Targeted Estimation
 :PROPERTIES: 
 :CUSTOM_ID: estimation
 :END:
 
-\CRANpkg{concrete} implements the one-step continuous time TMLE for estimands derived from cause-specific, intervention-specific absolute risks, which begins with estimating the treatment propensity \(\g\), the conditional hazard of censoring \(\lambda_c\) and the conditional hazard of each event \(\lambda_j \,:\; j = 1, \dots, J\). Super Learners are used to estimate these nuisance parameters, which involves specifying the cross-validation scheme, libraries of candidate algorithms, the cross-validation loss functions, and the Super Learner meta-learner.
+The TMLE procedure for estimands derived from cause-specific absolute risks begins with estimating the treatment propensity \(\g\), the conditional hazard of censoring \(\lambda_c\) and the conditional hazards of events \(\lambda_j \,:\; j = 1, \dots, J\). In \CRANpkg{concrete} these nuisance parameters are estimated using the Super Learner algorithm, which involves specifying a cross-validation scheme, compiling a library of candidate algorithms, and designating a cross-validation loss function and a Super Learner meta-learner.
 
-*** Cross-Validation
+*** Specifying Super Learners
 :PROPERTIES: 
 :CUSTOM_ID: cv
 :END:
 
-For a $V\text{-fold}$ cross validation scheme, let $Q_n = \{O_i\}_{i=1}^n$ be the observed $n$ i.i.d observations of $O \sim P_0$ and let $B_n = \{1, ... , V\}^n$ be a random vector that assigns the $n$ observations into $V$ validation folds. For each $v \in \{1, ..., V\}$ we then define a training set $Q^\mathcal{T}_v = \{O_i : B_n(i) = v\}$ with the corresponding validation set $Q^\mathcal{V}_v = \{O_i : B_n(i) \neq v\}$. For guidelines on selecting the number of folds and when stratification may be helpful, it may be helpful to consult cite:phillips_practical_2022. 
+For $V\text{-fold}$ cross validation, let $Q_n = \{O_i\}_{i=1}^n$ be the observed $n$ i.i.d observations of $O \sim P_0$ and let $B_n = \{1, ... , V\}^n$ be a random vector that assigns the $n$ observations into $V$ validation folds. For each $v \in \{1, ..., V\}$ we then define a training set $Q^\mathcal{T}_v = \{O_i : B_n(i) = v\}$ with the corresponding validation set $Q^\mathcal{V}_v = \{O_i : B_n(i) \neq v\}$. 
 
-Libraries should be constructed from candidate algorithms that vary in flexibility and respect pre-existing knowledge about the data-generating mechanism. For instance, Cox models should incorporate domain knowledge about which covariates may be most predictive of event times and if \(n\) is much greater than the number of covariates then more flexible candidate Cox parameterizations along with flexible algorithms such as Highly Adaptive Lasso (HAL). If on the other hand the number of covariates is not much smaller \(n\), then fewer and less flexible candidate algorithms should be used, potentially either including penalization natively or being paired with covariate screening algorithms.
+When specifying Super Learner libraries, candidate algorithms should range in flexibility and while respeciting pre-existing knowledge about the data-generating mechanism should be selected. For instance, candidate estimators for conditional hazards should incorporate domain knowledge about which covariates may be most predictive of event times. If the number of independent observations \(n\) is much greater than the number of covariates, then more highly flexible candidate algorithms such as Highly Adaptive Lasso (HAL) should be included in the Super Learner library. If on the other hand the number of covariates is not much less than \(n\), then libraries should be comprised of fewer and less flexible candidate algorithms,  potentially with native penalization as with coxnet or being paired with covariate screening algorithms.
 
-Super Learner candidates should be evaluated on a cross-validated loss function that is minimized by the true data-generating process and for maximal robustness a discrete selector that simply selects the best performing candidate should be used as the Super Learner metalearner.
+Super Learner loss functions should be bounded and minimized by the true data-generating process and for maximal robustness, the discrete selector that simply selects the best performing candidate should be used as the Super Learner metalearner.
 
-*** Initial Estimate of Treatment Propensity
+Currently the default cross-validation setup in \CRANpkg{concrete} attempts to follow the guidelines laid out in cite:phillips_practical_2022, with the number of cross-validation folds increasing as sample size decreases. Default Super Learner libraries are provided, but should be amended to suit users' data as detailed above. Further details on the default \CRANpkg{concrete} Super Learner specifications for each nuisance parameter are provided in the following sections.
+
+*** Estimating Treatment Propensity
 :PROPERTIES: 
 :CUSTOM_ID: trtps-est
 :END:
-For estimating the treatment propensity, let \(\g_0(\cdot \mid \X)\) be the true conditional distribution of $A$ given $\X$, \(\mathcal{M}_{\g} = \left\{\Hat{\g} : Q_n \to \Hat{\g}(Q_n) \right\}\) be the candidate library of propensity score estimators, and $L_\g$ be a loss function such that the risk $\mathbb{E}_0\left[L_\g(\Hat{\g}, O)\right]$ is minimized when $\Hat{\g} = \g_0$. The discrete Superlearner estimator is then the the candidate propensity estimator \(\Hat{\g} \in \mathcal{M}_{\g}\) that has minimal cross validated risk
+For estimating the treatment propensity, let \(\g_0(\cdot \mid \X)\) be the true conditional distribution of $A$ given $\X$, \(\mathcal{M}_{\g} = \left\{\Hat{\g} : Q_n \to \Hat{\g}(Q_n) \right\}\) be the candidate library of propensity score estimators, and $L_\g$ be a loss function such that the risk $\mathbb{E}_0\left[L_\g(\Hat{\g}, O)\right]$ is minimized when $\Hat{\g} = \g_0$. The current \CRANpkg{concrete} default for estimating treatment propensity uses the default \CRANpkg{Superlearner} loss functions with glmnet and xgboost as candidate algorithms. The discrete Superlearner estimator is then the the candidate propensity estimator \(\Hat{\g} \in \mathcal{M}_{\g}\) that has minimal cross validated risk
 #+begin_export latex
 \begin{equation}
 \Hat{\g}^{SL} = \argmin_{\Hat{\g} \in \mathcal{M}_\g} \sum_{v = 1}^{V} P_{Q^\mathcal{V}_v} \; L_\g(\Hat{\g}(Q^\mathcal{T}_v), Q^\mathcal{V}_v) \label{propsl}
 \end{equation}
 #+end_export
 
-*** Initial Estimate of Conditional Hazards
+
+*** Estimating Conditional Hazards
 :PROPERTIES: 
 :CUSTOM_ID: haz-est
 :END:
-For estimating the conditional hazards, let \(\lambda_{0,\,\delta} \,:\; \delta = 0, \dots, J\) be the true conditional hazards for censoring (\(\delta = 0\)) and events (\(\delta \in \{1, \dots, J\}\)). Let \(\mathcal{M}_\delta = \{\Hat{\lambda}_\delta : Q_n \to \mathbb{R}\}\) for \(\delta = 0, \dots, J\) be the libraries of candidate Cox hazard specifications for the censoring and cause-specific hazards and let \(L_\delta(\beta) = - \sum_{i=1}^{n} \left[\beta\,\L_i - \log\left[\sum_{h \in \mathcal{R}(\T_h)} \exp(\beta\,\L_h)\right]\right] \,\) be the negative log Cox partial-likelihood loss function. The discrete SuperLearner selector for each \(\delta\) chooses the candidate \(\Hat{\lambda}_\delta \in \mathcal{M}_\delta\) that has minimal cross validated risk 
+For estimating the conditional hazards, let \(\lambda_{0,\,\delta} \,:\; \delta = 0, \dots, J\) be the true conditional hazards for censoring (\(\delta = 0\)) and events (\(\delta \in \{1, \dots, J\}\)). Let \(\mathcal{M}_\delta = \{\Hat{\lambda}_\delta : Q_n \to \mathbb{R}\}\) for \(\delta = 0, \dots, J\) be the libraries of candidate estimators for the censoring and cause-specific hazards. The current \CRANpkg{concrete} default is a library of two Cox models, treatment-only and main-terms. The corresponding loss function is then the negative log Cox partial-likelihood loss function \(L_\delta(\beta) = - \sum_{i=1}^{n} \left[\beta\,\L_i - \log\left[\sum_{h \in \mathcal{R}(\T_h)} \exp(\beta\,\L_h)\right]\right] \,\). The discrete SuperLearner selector for each \(\delta\) chooses the candidate \(\Hat{\lambda}_\delta \in \mathcal{M}_\delta\) that has minimal cross validated risk 
 #+begin_export latex
 \begin{equation}
 \Hat{\lambda}_\delta^{SL} = \argmin_{\Hat{\lambda}_\delta \in \mathcal{M}_\delta} \sum_{v = 1}^{V} P_{Q^\mathcal{V}_v} \; L_\g(\Hat{\lambda}_\delta(Q^\mathcal{T}_v), Q^\mathcal{V}_v) \;:\; \delta = 0, \dots, J\label{hazsl}
 \end{equation}
 #+end_export
 
-*** Efficient Influence Curve
+These conditional hazard estimators are then used to compute the cause-specific absolute risks and survivals that are needed to compute the efficient influence curve (EIC). 
+
+*** Solving the Efficient Influence Curve
 :PROPERTIES:
 :CUSTOM_ID: EIC
 :END:
 
-The treatment propensity estimator Eq. \eqref{propsl} and conditional hazard estimators Eq. \eqref{hazsl} are used to estimate the nuisance parameters that make up the EICs of absolute-risk derived estimands like Eq. \eqref{obsrisk} and \eqref{obssurv}. Parameters that contrast multiple cause-specific absolute risks at multiple time points involve vector EICs comprised of the absolute risk EICs for each targeted event, each target time, and each intervention. For the event \(\jj\), time \(t\), and intervention propensity \(\trt\) absolute risk (\(\Psi_{\trt, \jj, t}(P_0) = F_\jj^{\trt}(t)\)), the corresponding vector EIC element is:
+The treatment propensity estimator Eq. \eqref{propsl} and conditional hazard estimators Eq. \eqref{hazsl} are used to compute the cause-specific absolute risk EICs corresponding to estimands like Eq. \eqref{obsrisk} and \eqref{obssurv}. Parameters that contrast multiple cause-specific absolute risks at multiple time points involve vector EICs comprised of the absolute risk EICs for each targeted event, each target time, and each intervention. For example, the vector EIC element corresponding to the event \(\jj\), time \(t\), and intervention propensity \(\trt\) cause-specific absolute risk (\(\Psi_{\trt, \jj, t}(P_0) = F_\jj^{\trt}(t)\)) is:
 #+begin_export latex
 \begin{align}
     D^*_{\trt, \jj, t}(\lambda, \g, S_c)(O) = \sum_{\lj = 1}^{J} \int \; &h_{\trt,\, \jj,\, \lj,\, t, s}(\lambda, \g, S_c)(O) \, \left(N_{\lj}(ds) - \1(\T \geq s) \, \lambda_\lj(s \AX)\right) \label{eic} \\
@@ -214,7 +240,7 @@ The treatment propensity estimator Eq. \eqref{propsl} and conditional hazard est
 \end{align}
 where \(N_l(s) = \1\left\{\T \leq s, \tDelta = l\right\}\) are the cause-specific counting processes and \(h_{\trt,\, \jj,\, \lj,\, t,\, s}(\lambda, \g, S_c)(O)\) is the TMLE "clever covariate" with the form
 \begin{align}
-    h_{\trt,\, \jj,\, \lj,\, t,\, s}&(\lambda, \g, S_c)(O) = \frac{{\color{blue}\trt(A \mid \X)\,} \1(s \leq t)}{{\color{green!70!black}\g(A \mid \X) \;S_c(s\text{-} \AX)}} \, \bigg(\1(\Delta = \jj) - \frac{{\color{red}F_\jj(t \AX)} - {\color{red} F_\jj(s \AX)}}{{\color{red} S(s \AX)}}\bigg) \label{clevcov}
+    h_{\trt,\, \jj,\, \lj,\, t,\, s}&(\lambda, \g, S_c)(O) = \frac{{\color{blue}\trt(A \mid \X)\,} \1(s \leq t)}{{\color{green!70!black}\g(A \mid \X) \;S_c(s\text{-} \AX)}} \, \bigg(\1(\lj = \jj) - \frac{{\color{red}F_\jj(t \AX)} - {\color{red} F_\jj(s \AX)}}{{\color{red} S(s \AX)}}\bigg) \label{clevcov}
 \end{align}
 #+end_export
 where \(F_j(t \ax)\) is the conditional cause-\(j\) absolute risk, \(S_c(t \AX)\) is the conditional censoring survival, \(S(t \AX)\) is the conditional event-free survival, and \(N_j(t) = \1\{\T \leq t, \, \Delta = l\}\) is the event-\(j\) counting process. The treatment propensity \(\g\) and the conditional event and censoring hazard functions ( \(\lambda_c,\, \lambda_j \;:\;  j = 1, \dots, J\)) are directly estimated with Eq. \eqref{propsl} and \eqref{hazsl} while the conditional absolute risks and survivals are computed from the hazard estimates as described in Section \ref{ObservedData}. The clever covariate is a function of the @@latex:{\color{blue}@@intervention propensity@@latex:}@@, @@latex:{\color{green!70!black}@@observed conditional distributions@@latex:}@@ which are not changed by TMLE targeting, and lastly the @@latex:{\color{red}@@outcome-related conditional distributions@@latex:}@@ which are updated by targeting.
@@ -235,6 +261,7 @@ where
 h_{j, s}(\lambda, \g, S_c)(O) &= \left(h_{\trt, \jj, \lj, \tk, s}(\lambda, \g, S_c)(O) : \trt \in \mathcal{A}, \jj \in \mathcal{J}, \tk \in \TK)\right)
 \end{align*}
 #+end_export
+
 In practice this integral is approximated by recursively summing along a series of locally least favorable models and ends when 
 
 #+begin_export latex
@@ -243,43 +270,49 @@ In practice this integral is approximated by recursively summing along a series 
 \end{equation}
 #+end_export
 
-*** Variance Estimation
+*** Estimating Variance
 
-\CRANpkg{concrete} estimates the variance of targeted risks by dividing the corresponding EIC's variance by the sample size, \(\frac{\mathbb{P}_n \;D^*( \lambda_{\epsilon}, \g, S_c)(O)^2}{n}\), which is a consistent estimator of the asymptotic variance of asymptotically linear estimators. In the presence of significant positivity violations (which may be seen as propensity scores close to 0), this EIC-derived variance estimator will be anti-conservative and variance estimation by bootstrap may be more reliable. However, bias resulting from positivity violations cannot be remedied in this way, and so other methods of addressing positivity violations (cite:petersen_diagnosing_2012) is recommended instead.
+In \CRANpkg{concrete}, the variance of TMLE estimates of targeted risks is computed by dividing the corresponding EIC's variance by the sample size, \(\frac{\mathbb{P}_n \;D^*( \lambda_{\epsilon}, \g, S_c)(O)^2}{n}\), which is a consistent estimator of the asymptotic variance of asymptotically linear estimators. In the presence of significant positivity violations (which may be seen as propensity scores close to 0), this EIC-derived variance estimator will be anti-conservative and variance estimation by bootstrap may be more reliable. However, bias resulting from positivity violations cannot be remedied in this way, and so other methods of addressing positivity violations (cite:petersen_diagnosing_2012) are recommended instead. For multidimensional estimands, simultaneous confidence intervals can be computed by simulating the \(1 - \alpha\) quantile of a multivariate normal distribution with the correlation structure of the estimand EICs.
 
 * Usage
 :PROPERTIES: 
 :CUSTOM_ID: UsingConcrete
 :END:
 
-\CRANpkg{concrete} was written for causal analyses of time-to-event data, though it can also be used for purely statistical estimation problems. There are 3 main user-facing functions in \CRANpkg{concrete}: \code{formatArguments()}, \code{doConcrete}, and \code{getOutput}. Specification of the estimation problem is done through input into \code{formatArguments()}, which checks the estimation specification and return errors, warnings, and messages as necessary. The output of \code{formatArguments()} is a \code{"ConcreteArgs"} object which is then passed into \code{doConcrete()} to perform the specified continuous-time one-step survival TMLE. The output of \code{doConcrete()} is a \code{"ConcreteEst"} object which can be passed into getOutput to print, summarize, and plot cause-specific absolute risk derived estimands such as risk differences and relative risks. 
+There are 3 main user-facing functions in \CRANpkg{concrete}: \code{formatArguments()}, \code{doConcrete}, and \code{getOutput}. Specification of the estimation problem is done through input into \code{formatArguments()}, which checks the estimation specification and outputs a \code{"ConcreteArgs"} object that encapsulates the estimation specification. When the estimation procedure is adequately specified, the \code{"ConcreteArgs"} object then passed into \code{doConcrete()} to perform the specified continuous-time one-step survival TMLE. The output of \code{doConcrete()} is a \code{"ConcreteEst"} object which can be passed into getOutput to output tables and plots for cause-specific absolute risk derived estimands such as risk differences and relative risks. 
 
 ** formatArguments()
 :PROPERTIES: 
 :CUSTOM_ID: formatArguments
 :END:
-Most inputs into \code{formatArguments()} are involved in specifying one of three tasks: specifying the observed data structure, the target estimand, or the TMLE update procedure. \code{formatArguments} sanity checks its arguments, i.e. the specified analysis, and returns an object of class \code{"ConcreteArgs"} with elements that can and sometimes should be modified by the user before passing the \code{"ConcreteArgs"} object back through \code{formatArguments} to be re-checked. This process can be repeated as necessary until the full estimation problem is adequately specified.
+
+** ConcreteArgs
+The arguments of \code{formatArguments()} are primarily involved in specifying 1) the observed data structure, 2) the target estimand, and 3) the TMLE estimator.
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes
+data <- as.data.table(survival::pbc)
+data <- data[, c("time", "status", "trt", "age", "sex", "albumin")]
+data <- data[!is.na(trt), ][, trt := trt - 1]
+
+ConcreteArgs <- formatArguments(DataTable = data,
+                                EventTime = "time",
+                                EventType = "status",
+                                Treatment = "trt",
+                                ID = NULL, 
+                                Intervention = 0:1,
+                                TargetEvent = 1:2,
+                                TargetTime = 90 * (6:30),
+                                MaxUpdateIter = 500)
+#+END_SRC
 
 *** Data
 :PROPERTIES: 
 :CUSTOM_ID: ObservedDataConcrete
 :END:
-\CRANpkg{concrete} requires data to be in the general form described in Eq. \eqref{obs-data}, with the observed time to first event (censoring or otherwise) \(\T\), the indicator of which event occured (\(\Delta\), with $\Delta = 0$ indicating right-censoring), the intervention variable \(A\), and a collection of baseline covariates \(\L\). This data must not include missing values; imputation of missing covariates should be done prior to passing data into \CRANpkg{concrete} while data with missing treatment or outcome values (other than right-censoring) is not supported by \CRANpkg{concrete}. Uniquely identifying subject IDs can be passed into \code{formatArguments()} through the \code{ID=} argument, though functionality for using subject IDs for analyzing clustered or longitudinal data has not yet been implemented.
+Observed data is passed into the \code{DataTable} argument as either a \code{data.frame} or \code{data.table} object. This data must include columns corresponding to the observed times \(\T\), indicator of which event occured (\(\Delta\), and treatment variable \(A\), as well as any number of columns containing baseline covariates \(\L\). Note that the treatment values in \(A\) must be numeric, with binary treatments encoded as 0 or 1. The data must not have missingness; imputation of missing covariates should be done prior to passing data into \CRANpkg{concrete} while data with missing treatment or outcome values is not supported by \CRANpkg{concrete}. If the data includes a column with uniquely identifying subject IDs, its name should be passed into the \code{ID=} argument; this is for compatibility with planned future functionality for analyzing clustered or longitudinal data.
 
-Using the PBC dataset as our example, $\T$ is the column \code{"time"}, $\Delta$ is the column \code{"status"}, $A$ is the column \code{"trt"}, and $\L$ consists of all the columns containing patient information observed at baseline.  This data is passed into \CRANpkg{concrete} as the following:
-#+name: pbc formatargs silent
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results none drawer  :exports code  :session *R* :cache no  :eval always
-library(concrete)
-library(data.table)
-set.seed(0)
-obs <- as.data.table(survival::pbc)
-obs <- obs[,  c("time", "status", "trt", "id", "age", "albumin", "sex")]
-obs <- obs[!is.na(trt), ]
-ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time",
-                                EventType = "status", Treatment = "trt",
-                                ID = "id", Intervention = 0:1)
-#+END_SRC
+In the above PBC example, the observed data is contained in the \code{data} object, $\T$ is the column {"time"}, $\Delta$ is the column {"status"}, $A$ is the column {"trt"}, and covariates $L$ are the remaining columns: "age", "sex", and "albumin".
 
 *** Target Estimand
 :PROPERTIES: 
@@ -291,77 +324,41 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time",
 :PROPERTIES: 
 :CUSTOM_ID: TreatmentRegime
 :END:
-For a binary \(A\) and static interventions \(d\) setting all observations to \(A=0\) or \(A=1\), then the intervention can specified \code{formatArguments(Intervention = c(0, 1)}.
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results none raw drawer  :exports code  :session *R* :cache no
-ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time",
-                                EventType = "status", Treatment = "trt",
-                                ID = "id", Intervention = 0:1)
-#+END_SRC
-
-More complex dynamic interventions are passed into \code{formatArguments(Intervention =)} as a list containing a pair of functions: an "intervention" function which outputs desired treatment **assignments** and a "g.star" function which outputs desired treatment **probabilities**. These functions can take treatment and covariates as arguments and must produce either treatment assignments or treatment probabilities respectively, each with the same dimensions as the observed treatment. The function \code{makeITT()} creates list of functions corresponding to binary static interventions, which can be used as a template for more complex interventions.
+For a binary \(A\) and static interventions \(d\) setting all observations to \(A=0\) or \(A=1\), interventions can specified with 0, 1, or c(0, 1) for both. More complex interventions can be specified with a list containing a pair of functions: an "intervention" function which outputs desired treatment **assignments** and a "g.star" function which outputs desired treatment **probabilities**. Dynamic interventions can be passed in as "intervention" functions without an accompanying "g.star" function, while stochastic interventions should be passed in as "g.star" functions. These functions can take treatment and covariates as arguments and must produce treatment assignments and probabilities respectively, each with the same dimensions as the observed treatment. The function \code{makeITT()} creates list of functions corresponding to binary static interventions, which can be used as a template for specifying more complex interventions.
 
 **** Target Events
 :PROPERTIES: 
 :CUSTOM_ID: TargetEvent
 :END:
-The \code{TargetEvent = } argument specifies the event types of interest. For \CRANpkg{concrete} event types must be integer valued, with 0 by default reserved for censoring. If no input is supplied and the default \code{TargetEvent = NULL} is used, then all observed non-zero event types will be targeted. If input is supplied for \code{TargetEvent = }, then all other observed event types will be treated as right-censoring.
+The \code{TargetEvent} argument specifies the event types of interest. Event types must be be coded as integers, with 0 reserved for censoring. If \code{TargetEvent=} is left \code{NULL}, then all non-zero event types present in the observed data will be targeted.
+# If input is supplied for \code{TargetEvent = }, then all other observed event types will be treated as right-censoring.
 
 In the \code{pbc} dataset, there are 3 event values encoded by the \code{status} column: 0 for censored, 1 for transplant, and 2 for death. To analyze \code{pbc} with transplants treated as right-censoring, \code{TargetEvent} should be set to 2,
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results none raw drawer  :exports code  :session *R* :cache no  
-ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time",
-                                EventType = "status", Treatment = "trt",
-                                ID = "id", Intervention = 0:1,
-                                TargetEvent = 2)
-#+END_SRC
-whereas for a competing risks analysis one could either leave \code{TargetEvent = NULL} or specify \code{TargetEvent = 1:2}
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results none raw drawer  :exports code  :session *R* :cache no  
-ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time",
-                                EventType = "status", Treatment = "trt",
-                                ID = "id", Intervention = 0:1,
-                                TargetEvent = 1:2)
-#+END_SRC
+whereas for a competing risks analysis one could either leave \code{TargetEvent = NULL} or set \code{TargetEvent = 1:2} as in the above example.
 
 **** Target Time
 :PROPERTIES: 
 :CUSTOM_ID: TargetTime
 :END:
 
-The \code{TargetTime=} argument specifies the time(s) at which estimates of the cause-specific absolute risks or event-free survival are desired. Target times should be restricted to the time range in which target events are observed and \code{formatArguments()} will return an error if target time is after the last observed failure event time. If no \code{TargetTime} is provided, then \CRANpkg{concrete} will target the last observed event time, though this is likely to result in a highly variable estimate if prior censoring is substantial. 
-
-The \code{TargetTime=} argument can either be a single number or a vector, as one-step TMLE can target cause-specific risks at multiple times simultaneously. For estimands involving full curves, \code{TargetTime=} should be set to a fine grid covering the desired interval.
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
-ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time",
-                                EventType = "status", Treatment = "trt", ID = "id", 
-                                Intervention = 0:1, TargetEvent = 1:2, TargetTime = 90 * (16:24))
-#+END_SRC
-
+The \code{TargetTime=} argument specifies the time(s) at which estimates of the cause-specific absolute risks or event-free survival are desired. Target times should be restricted to the time range in which target events are observed and \code{formatArguments()} will return an error if target time is after the last observed failure event time. If no \code{TargetTime} is provided, then \CRANpkg{concrete} will target the last observed event time, though this is likely to result in a highly variable estimate if prior censoring is substantial. The \code{TargetTime=} argument can either be a single number or a vector, as one-step TMLE can target cause-specific risks at multiple times simultaneously. For estimands involving full curves, \code{TargetTime=} should be set to a fine grid covering the desired interval.
 
 *** Estimator Specification
 :PROPERTIES: 
 :CUSTOM_ID: EstimationSpec
 :END:
-The \code{formatArguments()} arguments involved in estimation are the cross-validation setup \code{CVArg}, the Superlearner candidate libraries \code{Model}, the software backends \code{PropScoreBackend} and \code{HazEstBackend}, and the practical TMLE implementation choices \code{MaxUpdateIter}, \code{OneStepEps}, and \code{MinNuisance}. It should be noted here that \code{Model} is used here to conform with common usage in statistical software, rather than to refer to statistical or causal models. 
+The \code{formatArguments()} arguments involved in estimation are the cross-validation setup \code{CVArg}, the Superlearner candidate libraries \code{Model}, the software backends \code{PropScoreBackend} and \code{HazEstBackend}, and the practical TMLE implementation choices \code{MaxUpdateIter}, \code{OneStepEps}, and \code{MinNuisance}. Note that \code{Model} is used in this section in line with common usage in statistical software, rather than to refer to statistical or causal models as in preceding sections. 
 
 **** Cross-Validation
 :PROPERTIES: 
 :CUSTOM_ID: CV
 :END:
 \CRANpkg{concrete} uses \CRANpkg{origami} to specify cross-validation folds, specifically the function
-\code{origami::make\_folds()}. If no input is provided to the \code{formatArguments(CVArg= )} argument, concrete will implement a simple 10-fold cross-validation scheme.
+\code{origami::make\_folds()}. If no input is provided to the \code{formatArguments(CVArg= )} argument, concrete will implement simple V-fold cross-validation following the recommendations in cite:phillips_practical_2022.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes
-CVArgs <- list(n = nrow(obs), V = 10L, fold_fun = folds_vfold, cluster_ids = NULL, strata_ids = NULL)
-
-ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType = "status", 
-                                Treatment = "trt", ID = "id", 
-                                Intervention = 0:1, TargetEvent = 1:2, TargetTime = 90 * (16:24), 
-                                CVArg = CVArgs)
+#+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
+CVArgs <- list(n = nrow(data), V = 10)
 #+END_SRC
 
 **** Estimating Nuisance Parameters
@@ -369,15 +366,15 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
 :CUSTOM_ID: NuisanceEstimation
 :END:
 
-\CRANpkg{concrete} accepts estimator specifications for estimating nuisance parameters through the argument \code{formatArguments(Model= )}. Inputs into the \code{Model=} argument must be named lists with one entry for the intervention variable, and for each of the event type including censoring. The list element corresponding to intervention must be named after the variable and the list elements corresponding to each event type must be named for the numeric value of the event type ("0" for censoring). If no input is provided for the \code{Model=} argument, \code{formatArguments()} will return a correctly formatted list, \code{.[["Model"]]}, containing default estimator specifications for each nuisance parameter, which can be then edited by the user.
+Super Learner libraries for estimating nuisance parameters are specified in the \code{Model} argument. The input should be a named list with an element for the treatment variable and one for each event type including censoring. The list element corresponding to treatment must be named with the column name and the list elements corresponding to each event type must be named for the numeric value of the event type (e.g. "0" for censoring). Any missing specifications will be filled in with defaults, and the resulting list of libraries can be accessed in the output \code{.[["Model"]]} which can be then edited by the user.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results raw drawer :exports code  :session *R* :cache yes  
-ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType = "status", 
-                                Treatment = "trt", ID = "id", 
-                                Intervention = 0:1, TargetEvent = 1:2, TargetTime = 90 * (16:24), 
-                                CVArg = NULL, Model = NULL)
-str(ConcreteArgs[["Model"]], give.attr = FALSE)
+#+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
+Model <- list("trt" = c("SL.glmnet", "SL.ranger", "SL.xgboost", "SL.glmn"),
+              "0" = list("~ trt", "~ ."),
+              "1" = list("~ trt", "~ .", "~ trt:.")
+              "2" = list("~ trt", "~ .", "~ trt:.")
+              )
 #+END_SRC
 
 **** Propensity Score
@@ -393,35 +390,20 @@ package \code{formatArguments(PropScoreBackend = "Superlearner")} with candidate
 :CUSTOM_ID: HazardEstimation
 :END:
 
-For estimating the necessary conditional hazards, \CRANpkg{concrete} currently relies on a discrete Superlearner consisting of a library of Cox models implemented by \code{survival::coxph()} evaluated on cross-validated pseuo-likelihood loss. Support for estimation of hazards using Poisson-HAL or other methods may be added in the future, but currently the \code{HazEstBackend} argument must be "coxph". The default Cox specifications are a treatment-only model and a main-terms model with treatment and all covariates.  
+For estimating the necessary conditional hazards, \CRANpkg{concrete} currently relies on a discrete Superlearner consisting of a library of Cox models implemented by \code{survival::coxph()} evaluated on cross-validated pseuo-likelihood loss. Support for estimation of hazards using Poisson-HAL or other methods may be added in the future, but currently the \code{HazEstBackend} argument must be "coxph". The default Cox specifications are a treatment-only model and a main-terms model with treatment and all covariates. 
 
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
-DefaultHazardModels <- list("model1" = "~ trt", 
-                            "model2" = "~ .")
-#+END_SRC
-
-**** One-step TMLE Specification 
+**** TMLE Specification 
 :PROPERTIES: 
 :CUSTOM_ID: tmle-specification
 :END:
 
-As detailed by Eq. \eqref{onestep} and \eqref{one-step-stop}, the one-step TMLE update step involves recursively updating cause-specific hazards, summing along small steps \(\epsilon_i\). The value of $\epsilon$ is provided by the user as input into the argument \code{formatArguments(OneStepEps= )}; its default value is 0.1 and user-provided values must be between 0 and 1. The value of \code{OneStepEps} is meant to be heuristically small as the sum in Equation \eqref{onestep} approximates an integral; therefore \code{OneStepEps} is halved whenever an update step would increase the norm of the efficient influence function.
+As detailed by Eq. \eqref{onestep} and \eqref{one-step-stop}, the one-step TMLE update step involves recursively updating cause-specific hazards, summing along small steps \(\epsilon_i\). 
 
-The \code{formatArguments(MaxUpdateIter= )} argument is provided to provide a definite stop to the recursive TMLE update. This argument takes positive integers and is set to a default of 100. More updates may be needed when support for targeted estimands in the data is low and when targeting estimands with many components.
+# The value of $\epsilon$ is provided by the user as input into the argument \code{formatArguments(OneStepEps= )}; its default value is 0.1 and user-provided values must be between 0 and 1. The value of \code{OneStepEps} is meant to be heuristically small as the sum in Equation \eqref{onestep} approximates an integral; therefore \code{OneStepEps} is halved whenever an update step would increase the norm of the efficient influence function.
 
-The argument \code{formatArguments(MinNuisance= )} can be used to specify a lower bound for the product of the propensity score and lagged survival probablity for remaining uncensored; this term is present in the denominator of the efficient influence function and enforcing a lower bound decreases estimator variance at the cost of introducing bias. 
+The \code{formatArguments(MaxUpdateIter= )} argument is provided to provide a definite stop to the recursive TMLE update. The default number is 500 and should be sufficient for most applications, but may need to be increased when support for targeted estimands in the data is low and when targeting estimands with many components.
 
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
-ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType = "status", 
-                                Treatment = "trt", ID = "id", 
-                                Intervention = 0:1, TargetEvent = 1:2, TargetTime = 90 * (16:24), 
-                                CVArg = NULL, Model = NULL, 
-                                PropScoreBackend = "SuperLearner", HazEstBackend = "coxph", 
-                                MaxUpdateIter = 100, OneStepEps = 0.1, MinNuisance = 0.05)
-#+END_SRC
-
+The argument \code{formatArguments(MinNuisance= )} can be used to specify a lower bound for the product of the propensity score and lagged survival probablity for remaining uncensored; this term is present in the denominator of the efficient influence function and enforcing a lower bound decreases estimator variance at the cost of introducing bias but improving stability.
 
 **** ConcreteArgs object
 :PROPERTIES: 
@@ -432,35 +414,74 @@ ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType =
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results none raw  :exports code  :session *R* :cache yes  
-ConcreteArgs <- formatArguments(DataTable = obs, EventTime = "time", EventType = "status", 
-                                Treatment = "trt", ID = "id", 
-                                Intervention = 0:1, TargetEvent = 1:2, TargetTime = 90 * (16:24), 
-                                CVArg = NULL, Model = ConcreteArgs[["Model"]], 
-                                PropScoreBackend = "SuperLearner", HazEstBackend = "coxph", 
-                                MaxUpdateIter = 100, OneStepEps = 1, MinNuisance = 0.05)
-
-ConcreteArgs <- formatArguments(ConcreteArgs)
+  ConcreteArgs$Verbose <- TRUE
+ConcreteArgs[["Model"]][["1"]][[3]] <- "~ trt:."
+  ConcreteArgs <- formatArguments(ConcreteArgs)
 #+END_SRC
+
+The print method for ConcreteArgs objects displays summary information about 1) the observed data, 2) the target estimand (i.e. target event(s), target time(s) and intervention(s)), 3) specifications for initial nuisance parameter estimation, and 4) specification for the TMLE update. 
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output drawer :exports code  :session *R* :cache no  :eval 
+print(ConcreteArgs, Verbose = FALSE)
+#+END_SRC
+
+\begin{figure}[H]
+\includegraphics[width=\linewidth]{fig/ConcreteArgs.png}
+\end{figure}
 
 ** doConcrete()
 :PROPERTIES: 
 :CUSTOM_ID: doConcrete
 :END:
 
-Once \code{formatArguments()} runs satisfactorily, the resulting object of class \code{"ConcreteArgs"} can be passed into the \code{doConcrete()} function. \code{doConcrete()} will then perform the specified TMLE algorithm and output an object of class \code{"ConcreteEst"} which will contain contains TMLE point estimates and influence curves for the cause-specific absolute risks for each targeted event at each targeted time. If \code{formatArguments(GComp=TRUE)}, then the \code{"ConcreteEst"} object will also contain the result of using the Superlearner predictions as a plug-in g-formula estimate of the targeted risks. 
+Once \code{formatArguments()} runs satisfactorily, the resulting object of class \code{"ConcreteArgs"} is passed into the \code{doConcrete()} function which will then perform the specified TMLE algorithm. The output is an object of class \code{"ConcreteEst"} which contains TMLE point estimates and influence curves for the cause-specific absolute risks for each targeted event at each targeted time. If \code{formatArguments(GComp=TRUE)}, then the \code{"ConcreteEst"} object will also contain the result of using the Superlearner predictions as a plug-in g-formula estimate of the targeted risks. 
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results none raw drawer :exports code  :session *R* :cache yes  
 ConcreteEst <- doConcrete(ConcreteArgs)
 #+END_SRC
 
-Detailed explanations of the one-step TMLE for continuous-time absolute risk derived estimands can be found in cite:rytgaard_one-step_2021 and cite:rytgaard_continuous-time_2021. This manuscript briefly reviews this estimation procedure in Section \ref{estimation} and details how a TMLE is specified in \CRANpkg{concrete} in Section \ref{EstimationSpec}, subsections \ref{CV} through \ref{tmle-specification}. Here we will name the specific functions called in \code{doConcrete()} which perform each of the steps of the one-step continuous-time survival TMLE procedure.
+Detailed explanations of the one-step TMLE for continuous-time absolute risk derived estimands can be found in cite:rytgaard_one-step_2021 and cite:rytgaard_continuous-time_2021. This manuscript briefly reviews this estimation procedure in Section \ref{estimation} and details how a TMLE is specified in \CRANpkg{concrete} in Section \ref{EstimationSpec}, subsections \ref{CV} through \ref{tmle-specification}. Here we will call out the non-exported functions in \code{doConcrete()} which perform each of the steps of the one-step continuous-time survival TMLE procedure, in case users wish to explore the implementation.
 
 The cross-validation specification (Section \ref{CV}) is checked and evaluated in \code{formatArguments()}, returning fold assignments as \code{.[["CVFolds"]]} of the \code{"ConcreteArgs"} object.
 
 The initial estimation of nuisance parameters (Section \ref{NuisanceEstimation}) is performed by the function \code{getInitialEstimate()}; \code{getPropScore()} estimates propensity scores (Section \ref{PropScore}) and \code{getHazEstimate()} estimates the conditional hazards (Section \ref{HazardEstimation}).
 
 The one-step TMLE update procedure (Sections \ref{estimation} and \ref{tmle-specification}, Equations \eqref{eic}, \eqref{clevcov}, \eqref{onestep}, and \eqref{one-step-stop}) is performed by \code{doTmleUpdate()} with \code{getEIC()} computing the efficient influence curves \eqref{eic}.
+
+*** ConcreteEst objects
+:PROPERTIES:
+:CUSTOM_ID: concreteest
+:END:
+
+The print method for \code{"ConcreteEst"} objects displays information about whether TMLE algorithm adequately converged, truncation of intervention-related nuisance parameter estimates, and the initial estimation of nuisance parameters.
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output raw drawer :exports code  :session *R* :cache no  :eval 
+print(ConcreteEst)
+#+END_SRC
+
+\begin{figure}[H]
+\center
+\includegraphics[width=\linewidth]{fig/ConcreteEst.png}
+\end{figure}
+
+If TMLE has not converged, the mean EICs that have not attained the desired cutoff will be displayed in a table. Convergence can be attained by increasing the maximum number of iterations, though as seen above, even very small PnEIC values may not meet the convergence criteria at target times when very few events have yet occurred.
+
+The amount of g-related nuisance parameter truncation for each intervention is also printed, and if users suspect positivity issues, the plot method for \code{"ConcreteEst"} objects can be used to visualize the distribution of estimated propensity scores for each intervention, with the red vertical line marking the cutoff for truncation. 
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output raw drawer :exports code  :session *R* :cache no  :eval 
+plot(ConcreteEst, propscores = TRUE)
+#+END_SRC
+
+\begin{figure}[H]
+\center
+\includegraphics[width=\linewidth]{fig/A1-propscores.png}
+\end{figure}
+
+Propensity scores close to 0 indicate the possibility of positivity violations and may warrant re-examining the target time(s), interventions, and covariate adjustment sets. In typical survival applications, positivity issues may arise when targeting times at which some subjects are highly likely to have been censored, or if certain subjects are unlikely to have received a desired treatment intervention.
 
 ** getOutput()
 :PROPERTIES: 
@@ -486,7 +507,7 @@ ConcreteArgs <- formatArguments(DataTable = data,
                                 Intervention = 0:1,
                                 TargetTime = 90 * (6:30),
                                 TargetEvent = 1:2,
-                                MaxUpdateIter = 200,
+                                MaxUpdateIter = 500,
                                 Verbose = FALSE)
 
 ConcreteEst <- doConcrete(ConcreteArgs)
@@ -496,19 +517,19 @@ ConcreteOut <- getOutput(ConcreteEst)
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw drawer :exports code  :session *R* :cache no  :eval never
-getOutput(ConcreteEst, "RR", GComp = FALSE)[Time < 800 | Time > 2500, ]
+getOutput(ConcreteEst, "RR", GComp = FALSE)
 #+END_SRC
 
 #+name: pbc concrete analysis concreteout table
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output raw drawer :exports results  :session *R* :cache no  :eval never
 RR <- getOutput(ConcreteEst, "RR")[Estimator == "tmle", ] 
-Publish::org(RR[Time < 800 | Time > 2500, ])
+Publish::org(RR)
 #+END_SRC
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=.9\linewidth]{fig/rr-tbl.png}
+\includegraphics[width=.7\linewidth]{fig/rr-tbl.png}
 \end{figure}
 
 From this small sample risk ratios we can see that the treatment decreases the incidence of transplant (event 1) and leads to an increased incidence of death (event 2) earlier on followed by a decreased risk of death. We also see that these treatment effect estimates do not reach a 95% level of significance. The full table is not shown here because it would take too much space, as can often be the case when estimands involve many time points. Instead results may be more easily interpreted when plotted, as we do below with the treated and control cause-specific risks for transplant and death.
@@ -516,16 +537,16 @@ From this small sample risk ratios we can see that the treatment decreases the i
 #+BEGIN_SRC R :results output :exports none :session *R* :cache yes
 library(tidyverse)
 library(ggplot2)
-risks_plot <- dplyr::filter(ConcreteOut, Estimator == "tmle", Estimand == "Abs. Risk") %>%
+risks_plot <- dplyr::filter(ConcreteOut, Estimator == "tmle", Estimand == "Abs Risk") %>%
   mutate(Event = paste0("Event ", Event), J = Event, K = Estimator) %>%
   ggplot(aes(x = Time, y = `Pt Est`, colour = Intervention)) + facet_wrap(~Event, scale = "free") +
-  geom_line() + geom_ribbon(aes(ymin = `Pt Est` - 1.96*se, ymax = `Pt Est` + 1.96*se, fill = Intervention), 
-                            colour = NA, alpha = 0.06) +
+  geom_point() + geom_errorbar(aes(ymin = `CI Low`, ymax = `CI Hi`), alpha = 0.4) +
   theme_minimal() + guides(linetype = "none") +
   theme(
     plot.title = element_text(size = 14),
     panel.grid = element_blank()
   ) +
+  geom_ribbon(aes(ymin = `SimCI Low`, ymax = `SimCI Hi`, fill = Intervention, colour = NA, linetype = NA), alpha = 0.06) + 
   labs(x = "Days", y = "Cumulative Risk", title = "PBC Competing Risks ")
 ggsave(filename = "/Shared/Projects/ConCR-TMLE-Paper/worg/concrete-pbc.png", risks_plot,
        width = 8, height = 4, units = "in")
@@ -545,39 +566,6 @@ ggsave(filename = "/Shared/Projects/ConCR-TMLE-Paper/worg/concrete-pbc.png", ris
 Here, by comparing the treated and control cumulative incidence curves we can more clearly see the effect of treatment on incidence of both transplant and death, and especially how the treatment effect on risk of death varies over time. 
 
 * Diagnostics and Debugging
-** ConcreteArgs
-The print method for ConcreteArgs objects displays summary information about 1) the observed data, 2) the target estimand (i.e. target event(s), target time(s) and intervention(s)), 3) specifications for initial nuisance parameter estimation, and 4) specification for the TMLE update. 
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output drawer :exports code  :session *R* :cache no  :eval 
-print(ConcreteArgs, Verbose = FALSE)
-#+END_SRC
-
-\begin{figure}[H]
-\includegraphics[width=\linewidth]{fig/ConcreteArgs.png}
-\end{figure}
-
-** ConcreteEst
-The print method for ConcreteEst objects displays information about whether TMLE adequately converged, truncation of intervention-related nuisance parameter estimates, and the initial estimation of nuisance parameters.
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw drawer :exports code  :session *R* :cache no  :eval 
-print(ConcreteEst)
-#+END_SRC
-
-\begin{figure}[H]
-\center
-\includegraphics[width=\linewidth]{fig/ConcreteEst.png}
-\end{figure}
-
-If TMLE has not converged, the mean EICs that have not attained the desired cutoff will be displayed in a table. As can be seen above, when few events have yet occurred by some targeted times even small PnEICs may not meet the convergence criteria and precisely estimating event incidence may simply not be possible given the observed data. Otherwise, TMLE convergence may be attained by increasing the maximum number of TMLE iterations.
-
-The print method for ConcreteEst objects shows the amount of g-related nuisance parameter truncation for each intervention and for more details the plot method for ConcreteEst objects plots the distribution of estimated propensity scores for each intervention. Propensity scores close to 0 indicate the possibility of posivity violations and may warrant re-examining the target time(s), interventions, and covariate adjustment sets.
-
-\begin{figure}[H]
-\center
-\includegraphics[width=\linewidth]{fig/A1-propscores.png}
-\end{figure}
 
 ** Nuisance Weight Truncation Simulation
 
@@ -691,5 +679,6 @@ Since the density $P(O_d=o)$ implies any probability event about $O_d$, this g-c
 #+LaTeX_HEADER:\renewcommand{\L}{\ensuremath{W}}
 #+LaTeX_HEADER:\renewcommand{\l}{\ensuremath{w}}
 #+LaTeX_HEADER:\newcommand{\tDelta}{\ensuremath{\widetilde{\Delta}}}
+#+LaTeX_HEADER:\newcommand{\F}{\ensuremath{\mathcal{F}}}
 #+LaTeX_HEADER:\setcounter{secnumdepth}{5}
 
