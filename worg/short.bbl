@@ -221,11 +221,11 @@ E.~Polley, E.~LeDell, C.~Kennedy, S.~Lendle, and M.~v.~d. Laan.
 \newblock {SuperLearner}: {Super} {Learner} {Prediction}, May 2021.
 \newblock URL \url{https://CRAN.R-project.org/package=SuperLearner}.
 
-\bibitem[Rytgaard et~al.(2021)Rytgaard, Gerds, and van~der
+\bibitem[Rytgaard et~al.(2021{\natexlab{a}})Rytgaard, Gerds, and van~der
   Laan]{rytgaard_continuous-time_2021}
 H.~C. Rytgaard, T.~A. Gerds, and M.~J. van~der Laan.
 \newblock Continuous-time targeted minimum loss-based estimation of
-  intervention-specific mean outcomes, May 2021.
+  intervention-specific mean outcomes, May 2021{\natexlab{a}}.
 \newblock URL \url{http://arxiv.org/abs/2105.02088}.
 \newblock arXiv:2105.02088 [math, stat].
 
@@ -236,6 +236,16 @@ H.~C.~W. Rytgaard and M.~J. van~der Laan.
 \newblock \emph{arXiv:2107.01537 [stat]}, Sept. 2021.
 \newblock URL \url{http://arxiv.org/abs/2107.01537}.
 \newblock arXiv: 2107.01537 version: 2.
+
+\bibitem[Rytgaard et~al.(2021{\natexlab{b}})Rytgaard, Eriksson, and van~der
+  Laan]{rytgaard_estimation_2021}
+H.~C.~W. Rytgaard, F.~Eriksson, and M.~van~der Laan.
+\newblock Estimation of {Time}-{Specific} {Intervention} {Effects} on
+  {Continuously} {Distributed} {Time}-to-{Event} {Outcomes} by {Targeted}
+  {Maximum} {Likelihood} {Estimation}.
+\newblock \emph{arXiv:2106.11009 [stat]}, June 2021{\natexlab{b}}.
+\newblock URL \url{http://arxiv.org/abs/2106.11009}.
+\newblock arXiv: 2106.11009.
 
 \bibitem[Scheike et~al.(2008)Scheike, Zhang, and
   Gerds]{scheike_predicting_2008}
@@ -260,13 +270,6 @@ O.~Sofrygin, M.~J. v.~d. Laan, and R.~Neugebauer.
 \newblock stremr: {Streamlined} {Estimation} of {Survival} for {Static},
   {Dynamic} and {Stochastic} {Treatment} and {Monitoring} {Regimes}, Jan. 2017.
 \newblock URL \url{https://CRAN.R-project.org/package=stremr}.
-
-\bibitem[Vaart et~al.(2006)Vaart, Dudoit, and Laan]{vaart_oracle_2006}
-A.~W. v.~d. Vaart, S.~Dudoit, and M.~J. v.~d. Laan.
-\newblock Oracle inequalities for multi-fold cross validation.
-\newblock \emph{Statistics \& Decisions}, 24\penalty0 (3), Jan. 2006.
-\newblock ISSN 0721-2631.
-\newblock \doi{10.1524/stnd.2006.24.3.351}.
 
 \bibitem[Westling et~al.(2021)Westling, Luedtke, Gilbert, and
   Carone]{westling_inference_2021}
