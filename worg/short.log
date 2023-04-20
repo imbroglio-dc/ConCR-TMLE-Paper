@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.3.22)  12 APR 2023 21:24
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.3.22)  13 APR 2023 14:26
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1114,47 +1114,50 @@ File: fig/ConcreteArgs.png Graphic file (type png)
 <use fig/ConcreteArgs.png>
 Package pdftex.def Info: fig/ConcreteArgs.png  used on input line 371.
 (pdftex.def)             Requested size: 398.33858pt x 184.47879pt.
-<fig/ConcreteEst.png, id=373, 1762.585pt x 1296.845pt>
+<fig/ConcreteEst.png, id=372, 1762.585pt x 1296.845pt>
 File: fig/ConcreteEst.png Graphic file (type png)
 <use fig/ConcreteEst.png>
 Package pdftex.def Info: fig/ConcreteEst.png  used on input line 404.
 (pdftex.def)             Requested size: 398.33858pt x 293.08356pt.
  [9 <./fig/ConcreteArgs.png>]
-<fig/ConcreteEst-PS.png, id=388, 650.43pt x 289.08pt>
+<fig/ConcreteEst-PS.png, id=387, 752.8125pt x 301.125pt>
 File: fig/ConcreteEst-PS.png Graphic file (type png)
 <use fig/ConcreteEst-PS.png>
 Package pdftex.def Info: fig/ConcreteEst-PS.png  used on input line 417.
-(pdftex.def)             Requested size: 398.33858pt x 177.0443pt.
- [10 <./fig/ConcreteEst.png> <./fig/ConcreteEst-PS.png>]
-<fig/rd-tbl.png, id=401, 1638.12pt x 481.8pt>
+(pdftex.def)             Requested size: 398.33858pt x 159.33817pt.
+ [10 <./fig/ConcreteEst.png> <./fig/ConcreteEst-PS.png (PNG copy)>]
+<fig/rd-tbl.png, id=399, 1638.12pt x 481.8pt>
 File: fig/rd-tbl.png Graphic file (type png)
 <use fig/rd-tbl.png>
 Package pdftex.def Info: fig/rd-tbl.png  used on input line 437.
 (pdftex.def)             Requested size: 398.33858pt x 117.15614pt.
-<fig/concrete-pbc.png, id=402, 722.7pt x 289.08pt>
+<fig/concrete-pbc.png, id=400, 722.7pt x 289.08pt>
 File: fig/concrete-pbc.png Graphic file (type png)
 <use fig/concrete-pbc.png>
 Package pdftex.def Info: fig/concrete-pbc.png  used on input line 450.
 (pdftex.def)             Requested size: 398.33858pt x 159.33412pt.
- [11 <./fig/rd-tbl.png> <./fig/concrete-pbc.png>] [12] (./short.bbl
-(./short.brf)
+ [11 <./fig/rd-tbl.png> <./fig/concrete-pbc.png>] [12]
+(./short.bbl (./short.brf)
 \tf@brf=\write6
 \openout6 = `short.brf'.
 
  [13]) [14] (./short.aux)
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
 Package rerunfilecheck Info: File `short.out' has not changed.
 (rerunfilecheck)             Checksum: 146197FFB6A4672B2F0BDFACF26DA885;3131.
 Package rerunfilecheck Info: File `short.brf' has not changed.
 (rerunfilecheck)             Checksum: 8B986F8734124298745199CE89F9E873;2525.
  ) 
 Here is how much of TeX's memory you used:
- 28286 strings out of 479014
- 491307 string characters out of 5856658
- 1117570 words of memory out of 5000000
- 44735 multiletter control sequences out of 15000+600000
+ 28290 strings out of 479014
+ 491371 string characters out of 5856658
+ 1117560 words of memory out of 5000000
+ 44739 multiletter control sequences out of 15000+600000
  475422 words of font info for 316 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 128i,12n,131p,2077b,1812s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 128i,12n,131p,2160b,1812s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/home/imbroglio/texlive/2021/texmf-dist/fonts/enc/dvips/base/8r.enc}{/home/i
 mbroglio/texlive/2021/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-0.enc}</home
 /imbroglio/texlive/2021/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-z
@@ -1172,10 +1175,10 @@ elvetic/uhvro8a.pfb></home/imbroglio/texlive/2021/texmf-dist/fonts/type1/urw/pa
 latino/uplb8a.pfb></home/imbroglio/texlive/2021/texmf-dist/fonts/type1/urw/pala
 tino/uplr8a.pfb></home/imbroglio/texlive/2021/texmf-dist/fonts/type1/urw/palati
 no/uplri8a.pfb>
-Output written on short.pdf (14 pages, 1107718 bytes).
+Output written on short.pdf (14 pages, 1008324 bytes).
 PDF statistics:
- 578 PDF objects out of 1000 (max. 8388607)
- 530 compressed objects within 6 object streams
+ 576 PDF objects out of 1000 (max. 8388607)
+ 529 compressed objects within 6 object streams
  153 named destinations out of 1000 (max. 500000)
  64171 words of extra memory for PDF output out of 74296 (max. 10000000)
 
